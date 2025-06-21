@@ -39,24 +39,6 @@ func TestResponse(t *testing.T) {
 		t.Fail()
 	}
 
-	if r.Bytes != nil {
-		t.Logf("r.Bytes not empty: len(r.Bytes)=%d", len(*r.Bytes))
-		t.Fail()
-	}
-
-	b := []byte("test")
-	r.WithBytes(&b)
-
-	if &b != r.Bytes {
-		t.Logf("unexpected r.Bytes ptr addr: expected %d got %d", &b, r.Bytes)
-		t.Fail()
-	}
-
-	if !reflect.DeepEqual(b, *r.Bytes) {
-		t.Logf("unexpected r.Bytes value: expected \"%s\" got \"%s\"", b, *r.Bytes)
-		t.Fail()
-	}
-
 	if r.HttpStatus != http.StatusOK {
 		t.Logf("unexpected r.HttpStatus value: expected \"%d\" got \"%d\"", http.StatusOK, r.HttpStatus)
 		t.Fail()
@@ -220,7 +202,7 @@ func TestHandler(t *testing.T) {
 		b := []byte("test")
 		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response(nil).WithBytes(&b).WithHttpStatus(http.StatusCreated), nil
+				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
 			},
 		}).Make()
 

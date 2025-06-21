@@ -164,6 +164,7 @@ func (h *HandlerGroup) Get(handler Handler) error {
 
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == "OPTIONS" {
+		// check if custom options handler was provided
 		if f, ok := h.handlers[req.Method]; ok && optionsHandlerBehaviour == OptionsHandlerOverwrite {
 			return f(w, req)
 		}
@@ -172,7 +173,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 	}
 
 	if f, ok := h.handlers[req.Method]; ok {
-		// apply local middleware
+		// apply middleware
 		return f(w, req)
 	} else {
 		// if method is not found in group, return MethodNotAllowed error
@@ -218,12 +219,14 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 				l.Status = res.HttpStatus
 				w.WriteHeader(l.Status)
 			}
-			if res.Bytes != nil && len(*res.Bytes) > 0 {
-				_, _ = w.Write(*res.Bytes)
-			} else if res.Data != nil {
-				if reflect.TypeOf(res.Data).Name() == "string" {
+
+			if res.Data != nil {
+				switch reflect.TypeOf(res.Data) {
+				case reflect.TypeFor[string]():
 					l.ResponseSize, _ = w.Write([]byte(res.Data.(string)))
-				} else {
+				case reflect.TypeFor[[]byte]():
+					l.ResponseSize, _ = w.Write(res.Data.([]uint8))
+				default:
 					l.ResponseSize, _ = marshalAndWrite(w, res.Data)
 				}
 			}
@@ -352,12 +355,6 @@ type HandlerResponse struct {
 	Data       any
 	HttpStatus int
 	LogMessage string
-	Bytes      *[]byte
-}
-
-func (r *HandlerResponse) WithBytes(b *[]byte) *HandlerResponse {
-	r.Bytes = b
-	return r
 }
 
 func (r *HandlerResponse) WithHttpStatus(code int) *HandlerResponse {
