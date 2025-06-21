@@ -217,7 +217,9 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 		if res != nil {
 			if http.StatusText(res.HttpStatus) != "" {
 				l.Status = res.HttpStatus
-				w.WriteHeader(l.Status)
+				if l.Status != http.StatusOK {
+					w.WriteHeader(l.Status)
+				}
 			}
 			l.ResponseSize, _ = write(w, res.Data)
 			if res.LogMessage != "" {
