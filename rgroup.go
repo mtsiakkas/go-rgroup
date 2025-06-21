@@ -193,7 +193,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 		l.Time()
 
 		defer func() {
-			h.postprocessor(ctx, &l)
+			h.postprocessor(ctx, l)
 		}()
 
 		if err != nil {
@@ -285,18 +285,20 @@ type RequestData struct {
 	Status       int
 	IsError      bool
 	ResponseSize int
+	Context      context.Context
 }
 
-func FromRequest(req *http.Request) RequestData {
+func FromRequest(req *http.Request) *RequestData {
 	l := RequestData{
-		Path:   strings.Split(req.RequestURI, "?")[0],
-		Method: req.Method,
-		Params: req.URL.Query(),
-		Status: http.StatusOK,
-		Ts:     time.Now().UnixNano(),
+		Path:    strings.Split(req.RequestURI, "?")[0],
+		Method:  req.Method,
+		Params:  req.URL.Query(),
+		Status:  http.StatusOK,
+		Ts:      time.Now().UnixNano(),
+		Context: req.Context(),
 	}
 
-	return l
+	return &l
 }
 
 func (l *RequestData) Time() int64 {
