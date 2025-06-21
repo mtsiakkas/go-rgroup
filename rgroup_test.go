@@ -605,7 +605,7 @@ func TestPostprocessor(t *testing.T) {
 
 		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(1 * time.Second)
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
@@ -625,6 +625,40 @@ func TestPostprocessor(t *testing.T) {
 		}
 	})
 
+	t.Run("request with context", func(t *testing.T) {
+
+		type ContextKey string
+		print := func(ctx context.Context, r *rgroup.RequestData) {
+			c := r.Context.Value(ContextKey("test")).(string)
+			fmt.Println("request complete: " + c)
+		}
+
+		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+			},
+		})
+
+		g.SetPostprocessor(print)
+
+		h := g.Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequestWithContext(
+			context.WithValue(context.Background(), ContextKey("test"), "context test"),
+			http.MethodGet,
+			"/",
+			nil,
+		)
+
+		out := captureOutput(func() { h(rr, req) })
+
+		if out != "request complete: context test\n" {
+			t.Logf("unexpected log: %s", out)
+			t.Fail()
+		}
+
+	})
 }
 
 func captureOutput(f func()) string {
@@ -633,14 +667,11 @@ func captureOutput(f func()) string {
 		panic(err)
 	}
 	stdout := os.Stdout
-	stderr := os.Stderr
 	defer func() {
 		os.Stdout = stdout
-		os.Stderr = stderr
 		log.SetOutput(os.Stderr)
 	}()
 	os.Stdout = writer
-	os.Stderr = writer
 	log.SetOutput(writer)
 	out := make(chan string)
 	wg := new(sync.WaitGroup)
