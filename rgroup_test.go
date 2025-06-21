@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/mtsiakkas/go-rgroup"
 )
@@ -263,9 +264,7 @@ func TestHandler(t *testing.T) {
 
 		t.Run("overwrite", func(t *testing.T) {
 
-			rgroup.SetGlobalOptions(rgroup.GlobalOptions{
-				OptionsHandlerBehaviour: rgroup.OptionsHandlerOverwrite,
-			})
+			rgroup.OnOptionsHandler(rgroup.OptionsHandlerOverwrite)
 			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
@@ -310,7 +309,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("error", func(t *testing.T) {
-				rgroup.SetGlobalOptions(rgroup.GlobalOptions{DuplicateMethodBehaviour: rgroup.DuplicateMethodError})
+				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError)
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return nil, nil
@@ -328,7 +327,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("ignore", func(t *testing.T) {
-				rgroup.SetGlobalOptions(rgroup.GlobalOptions{DuplicateMethodBehaviour: rgroup.DuplicateMethodIgnore})
+				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodIgnore)
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return rgroup.Response("get1"), nil
@@ -357,7 +356,7 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("overwrite", func(t *testing.T) {
-				rgroup.SetGlobalOptions(rgroup.GlobalOptions{DuplicateMethodBehaviour: rgroup.DuplicateMethodOverwrite})
+				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite)
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return rgroup.Response("get1"), nil
@@ -388,9 +387,7 @@ func TestHandler(t *testing.T) {
 
 		t.Run("ignore", func(t *testing.T) {
 
-			rgroup.SetGlobalOptions(rgroup.GlobalOptions{
-				OptionsHandlerBehaviour: rgroup.OptionsHandlerIgnore,
-			})
+			rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore)
 			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
@@ -580,15 +577,13 @@ func TestPostprocessor(t *testing.T) {
 		print := func(ctx context.Context, r *rgroup.RequestData) {
 			fmt.Println("global")
 		}
-		rgroup.SetGlobalOptions(rgroup.GlobalOptions{RequestPostprocessor: print})
+		rgroup.SetGlobalPostprocessor(print)
 
 		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
-
-		//g.SetPostprocessor(print)
 
 		h := g.Make()
 
@@ -610,6 +605,7 @@ func TestPostprocessor(t *testing.T) {
 
 		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				time.Sleep(10 * time.Millisecond)
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})

@@ -30,16 +30,20 @@ const (
 	OptionsHandlerOverwrite
 )
 
-type GlobalOptions struct {
-	OptionsHandlerBehaviour  OptionsHandlerBehaviour
-	DuplicateMethodBehaviour DuplicateMethodBehaviour
-	RequestPostprocessor     func(context.Context, *RequestData)
+var globalRequestPostprocessor func(context.Context, *RequestData)
+var duplicateMethodBehaviour DuplicateMethodBehaviour
+var optionsHandlerBehaviour OptionsHandlerBehaviour
+
+func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
+	globalRequestPostprocessor = p
 }
 
-var opts GlobalOptions
+func OnDuplicateMethod(o DuplicateMethodBehaviour) {
+	duplicateMethodBehaviour = o
+}
 
-func SetGlobalOptions(o GlobalOptions) {
-	opts = o
+func OnOptionsHandler(o OptionsHandlerBehaviour) {
+	optionsHandlerBehaviour = o
 }
 
 // Create new HandlerResponse with data
@@ -66,7 +70,7 @@ func New() *HandlerGroup {
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
 func NewWithHandlers(handlers map[string]Handler) *HandlerGroup {
 	if _, ok := handlers[http.MethodOptions]; ok {
-		switch opts.OptionsHandlerBehaviour {
+		switch optionsHandlerBehaviour {
 		case OptionsHandlerPanic:
 			panic("cannot overwrite options handler")
 		case OptionsHandlerOverwrite:
@@ -120,7 +124,7 @@ func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	m := strings.ToUpper(method)
 	if _, ok := h.handlers[m]; ok {
-		switch opts.DuplicateMethodBehaviour {
+		switch duplicateMethodBehaviour {
 		case DuplicateMethodPanic:
 			panic("cannot overwrite options handler")
 		case DuplicateMethodIgnore:
@@ -160,7 +164,7 @@ func (h *HandlerGroup) Get(handler Handler) error {
 
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == "OPTIONS" {
-		if f, ok := h.handlers[req.Method]; ok && opts.OptionsHandlerBehaviour == OptionsHandlerOverwrite {
+		if f, ok := h.handlers[req.Method]; ok && optionsHandlerBehaviour == OptionsHandlerOverwrite {
 			return f(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
@@ -178,8 +182,8 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 
 func (h HandlerGroup) Make() http.HandlerFunc {
 	if h.postprocessor == nil {
-		if opts.RequestPostprocessor != nil {
-			h.postprocessor = opts.RequestPostprocessor
+		if globalRequestPostprocessor != nil {
+			h.postprocessor = globalRequestPostprocessor
 		} else {
 			h.postprocessor = print
 		}
