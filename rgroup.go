@@ -219,17 +219,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 				l.Status = res.HttpStatus
 				w.WriteHeader(l.Status)
 			}
-
-			if res.Data != nil {
-				switch reflect.TypeOf(res.Data) {
-				case reflect.TypeFor[string]():
-					l.ResponseSize, _ = w.Write([]byte(res.Data.(string)))
-				case reflect.TypeFor[[]byte]():
-					l.ResponseSize, _ = w.Write(res.Data.([]uint8))
-				default:
-					l.ResponseSize, _ = marshalAndWrite(w, res.Data)
-				}
-			}
+			l.ResponseSize, _ = write(w, res.Data)
 			if res.LogMessage != "" {
 				l.Message = res.LogMessage
 			}
@@ -263,13 +253,23 @@ func print(ctx context.Context, r *RequestData) {
 	}
 }
 
-func marshalAndWrite(w http.ResponseWriter, d any) (int, error) {
-	dj, err := json.Marshal(d)
-	if err != nil {
-		return 0, err
+func write(w http.ResponseWriter, d any) (int, error) {
+	n := 0
+	var err error
+	if d != nil {
+		switch reflect.TypeOf(d) {
+		case reflect.TypeFor[string]():
+			n, err = w.Write([]byte(d.(string)))
+		case reflect.TypeFor[[]byte]():
+			n, err = w.Write(d.([]byte))
+		default:
+			dj, jerr := json.Marshal(d)
+			err = jerr
+			if jerr == nil {
+				n, err = w.Write(dj)
+			}
+		}
 	}
-
-	n, err := w.Write(dj)
 	if err != nil {
 		return 0, err
 	}
