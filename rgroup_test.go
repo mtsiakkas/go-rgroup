@@ -246,7 +246,10 @@ func TestHandler(t *testing.T) {
 
 		t.Run("overwrite", func(t *testing.T) {
 
-			rgroup.OnOptionsHandler(rgroup.OptionsHandlerOverwrite)
+			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerOverwrite); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
 			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
@@ -273,6 +276,13 @@ func TestHandler(t *testing.T) {
 
 		t.Run("duplicate handler", func(t *testing.T) {
 
+			t.Run("unknown option", func(t *testing.T) {
+				if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodBehaviour(4)); err == nil {
+					t.Log("expected error")
+					t.Fail()
+				}
+			})
+
 			t.Run("panic", func(t *testing.T) {
 				defer func() { _ = recover() }()
 
@@ -291,7 +301,10 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("error", func(t *testing.T) {
-				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError)
+				if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+					t.Logf("unexpected error: %s", err)
+					t.FailNow()
+				}
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return nil, nil
@@ -309,7 +322,10 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("ignore", func(t *testing.T) {
-				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodIgnore)
+				if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodIgnore); err != nil {
+					t.Logf("unexpected error: %s", err)
+					t.FailNow()
+				}
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return rgroup.Response("get1"), nil
@@ -338,7 +354,10 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("overwrite", func(t *testing.T) {
-				rgroup.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite)
+				if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite); err != nil {
+					t.Logf("unexpected error: %s", err)
+					t.FailNow()
+				}
 				g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 					"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 						return rgroup.Response("get1"), nil
@@ -369,7 +388,10 @@ func TestHandler(t *testing.T) {
 
 		t.Run("ignore", func(t *testing.T) {
 
-			rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore)
+			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
 			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
@@ -395,6 +417,13 @@ func TestHandler(t *testing.T) {
 			allow := strings.Split(rr.Header().Get("Allow"), ",")
 			if !slices.Contains(allow, http.MethodGet) || !slices.Contains(allow, http.MethodOptions) {
 				t.Logf("unexpected allow header: %s", rr.Header().Get("Allow"))
+				t.Fail()
+			}
+		})
+
+		t.Run("unknown option", func(t *testing.T) {
+			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerBehaviour(4)); err == nil {
+				t.Log("expected error", err)
 				t.Fail()
 			}
 		})

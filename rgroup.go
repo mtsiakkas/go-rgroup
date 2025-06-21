@@ -22,6 +22,17 @@ const (
 	DuplicateMethodError
 )
 
+var duplicateMethodOpts = map[DuplicateMethodBehaviour]string{
+	DuplicateMethodPanic:     "panic",
+	DuplicateMethodIgnore:    "ignore",
+	DuplicateMethodOverwrite: "overwrite",
+	DuplicateMethodError:     "error",
+}
+
+func (d DuplicateMethodBehaviour) String() string {
+	return duplicateMethodOpts[d]
+}
+
 type OptionsHandlerBehaviour int
 
 const (
@@ -29,6 +40,16 @@ const (
 	OptionsHandlerIgnore
 	OptionsHandlerOverwrite
 )
+
+var optsOpts = map[OptionsHandlerBehaviour]string{
+	OptionsHandlerPanic:     "panic",
+	OptionsHandlerIgnore:    "ignore",
+	OptionsHandlerOverwrite: "overwrite",
+}
+
+func (o OptionsHandlerBehaviour) String() string {
+	return optsOpts[o]
+}
 
 var globalRequestPostprocessor func(context.Context, *RequestData)
 var duplicateMethodBehaviour DuplicateMethodBehaviour
@@ -38,12 +59,20 @@ func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
 	globalRequestPostprocessor = p
 }
 
-func OnDuplicateMethod(o DuplicateMethodBehaviour) {
+func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
+	if _, ok := duplicateMethodOpts[o]; !ok {
+		return fmt.Errorf("unknown option %s", o)
+	}
 	duplicateMethodBehaviour = o
+	return nil
 }
 
-func OnOptionsHandler(o OptionsHandlerBehaviour) {
+func OnOptionsHandler(o OptionsHandlerBehaviour) error {
+	if _, ok := optsOpts[o]; !ok {
+		return fmt.Errorf("unknown option %d", o)
+	}
 	optionsHandlerBehaviour = o
+	return nil
 }
 
 // Create new HandlerResponse with data
@@ -78,6 +107,8 @@ func NewWithHandlers(handlers map[string]Handler) *HandlerGroup {
 		case OptionsHandlerIgnore:
 			delete(handlers, http.MethodOptions)
 			fmt.Print("ignoring OPTIONS handler")
+		default:
+			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", duplicateMethodBehaviour))
 		}
 	}
 
@@ -128,12 +159,14 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 		case DuplicateMethodPanic:
 			panic("cannot overwrite options handler")
 		case DuplicateMethodIgnore:
-			fmt.Print("ignoring dupliacte handler")
+			fmt.Print("ignoring duplicate handler")
 			return nil
 		case DuplicateMethodOverwrite:
 			fmt.Print("overwriting OPTIONS handler")
 		case DuplicateMethodError:
 			return fmt.Errorf("handler for %s already set", m)
+		default:
+			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", duplicateMethodBehaviour))
 		}
 	}
 
