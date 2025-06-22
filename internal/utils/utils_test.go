@@ -1,17 +1,14 @@
 package utils_test
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
-	"sync"
 	"testing"
 
+	testing_helpers "github.com/mtsiakkas/go-rgroup/internal/testing"
 	"github.com/mtsiakkas/go-rgroup/internal/utils"
 	"github.com/mtsiakkas/go-rgroup/pkg/request"
 )
@@ -30,7 +27,7 @@ func TestPrint(t *testing.T) {
 		ResponseSize: 100,
 	}
 
-	res1 := captureOutput(func() { utils.Print(context.Background(), &r) })
+	res1 := testing_helpers.CaptureOutput(func() { utils.Print(context.Background(), &r) })
 	if !strings.HasSuffix(res1, "GET 202 /test [200.0ns]\n") {
 		t.Logf("unexpected print output: %s", res1)
 		t.Fail()
@@ -39,14 +36,14 @@ func TestPrint(t *testing.T) {
 	r.Message = "test message"
 	r.Duration = 2300
 
-	res2 := captureOutput(func() { utils.Print(context.Background(), &r) })
+	res2 := testing_helpers.CaptureOutput(func() { utils.Print(context.Background(), &r) })
 	if !strings.HasSuffix(res2, "GET 202 /test [2.3us]\ntest message\n") {
 		t.Logf("unexpected print output: %s", res2)
 		t.Fail()
 	}
 
 	r.IsError = true
-	res3 := captureOutput(func() { utils.Print(context.Background(), &r) })
+	res3 := testing_helpers.CaptureOutput(func() { utils.Print(context.Background(), &r) })
 	if !strings.HasSuffix(res3, "\033[31mGET 202 /test [2.3us]\ntest message\033[0m\n") {
 		t.Logf("unexpected print output: %s", res3)
 		t.Fail()
@@ -133,31 +130,4 @@ func TestWrite(t *testing.T) {
 			t.Fail()
 		}
 	})
-}
-
-func captureOutput(f func()) string {
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-	stdout := os.Stdout
-	defer func() {
-		os.Stdout = stdout
-		log.SetOutput(os.Stderr)
-	}()
-	os.Stdout = writer
-	log.SetOutput(writer)
-	out := make(chan string)
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
-	go func() {
-		var buf bytes.Buffer
-		wg.Done()
-		_, _ = io.Copy(&buf, reader)
-		out <- buf.String()
-	}()
-	wg.Wait()
-	f()
-	_ = writer.Close()
-	return <-out
 }

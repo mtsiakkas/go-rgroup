@@ -1,23 +1,20 @@
 package group_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"reflect"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/mtsiakkas/go-rgroup"
+	testing_helpers "github.com/mtsiakkas/go-rgroup/internal/testing"
 	"github.com/mtsiakkas/go-rgroup/pkg/config"
 	"github.com/mtsiakkas/go-rgroup/pkg/group"
 	"github.com/mtsiakkas/go-rgroup/pkg/request"
@@ -486,7 +483,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := captureOutput(func() { h(rr, req) })
+		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
 
 		if !strings.Contains(out, "GET 202 / [") || !strings.HasSuffix(out, "test message\n") {
 			t.Logf("unexpected output: \"%s\"", out)
@@ -511,7 +508,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := captureOutput(func() { h(rr, req) })
+		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
 
 		if out != "global\n" {
 			t.Logf("unexpected log: %s", out)
@@ -538,7 +535,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := captureOutput(func() { h(rr, req) })
+		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
 
 		if out != "request complete\n" {
 			t.Logf("unexpected log: %s", out)
@@ -572,7 +569,7 @@ func TestPostprocessor(t *testing.T) {
 			nil,
 		)
 
-		out := captureOutput(func() { h(rr, req) })
+		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
 
 		if out != "request complete: context test\n" {
 			t.Logf("unexpected log: %s", out)
@@ -580,31 +577,4 @@ func TestPostprocessor(t *testing.T) {
 		}
 
 	})
-}
-
-func captureOutput(f func()) string {
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-	stdout := os.Stdout
-	defer func() {
-		os.Stdout = stdout
-		log.SetOutput(os.Stderr)
-	}()
-	os.Stdout = writer
-	log.SetOutput(writer)
-	out := make(chan string)
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
-	go func() {
-		var buf bytes.Buffer
-		wg.Done()
-		_, _ = io.Copy(&buf, reader)
-		out <- buf.String()
-	}()
-	wg.Wait()
-	f()
-	_ = writer.Close()
-	return <-out
 }
