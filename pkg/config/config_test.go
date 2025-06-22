@@ -1,10 +1,20 @@
 //go:build test
+
 package config_test
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/mtsiakkas/go-rgroup"
+	testing_helpers "github.com/mtsiakkas/go-rgroup/internal/testing"
 	"github.com/mtsiakkas/go-rgroup/pkg/config"
+	"github.com/mtsiakkas/go-rgroup/pkg/group"
+	"github.com/mtsiakkas/go-rgroup/pkg/request"
+	"github.com/mtsiakkas/go-rgroup/pkg/response"
 )
 
 func TestDuplicate(t *testing.T) {
@@ -80,4 +90,28 @@ func TestOptions(t *testing.T) {
 			t.Fail()
 		}
 	})
+}
+
+func TestPostprocessor(t *testing.T) {
+	config.SetGlobalPostprocessor(func(ctx context.Context, req *request.RequestData) {
+		fmt.Println("global postprocessor")
+	})
+
+	h := rgroup.NewWithHandlers(map[string]group.Handler{"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		return nil, nil
+	}}).Make()
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	res := testing_helpers.CaptureOutput(func() { h(rr, req) })
+	if res != "global postprocessor\n" {
+		t.Logf("unexpected log: %s", res)
+		t.Fail()
+	}
+
+	p := config.GetGlobalPostprocessor()
+	if p == nil {
+		t.Log("expected not nil global postprocessor")
+		t.Fail()
+	}
 }
