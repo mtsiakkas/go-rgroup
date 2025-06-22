@@ -1,9 +1,9 @@
 .PHONY: test
 test:
 ifeq (, $(shell which tparse 2>/dev/null))
-	@go test ./... -tags=test -short -cover
+	@go test -tags=test -cover ./...
 else
-	@go test -json -cover ./... | tparse -pass
+	@go test -json -cover -tags=test ./... | tparse -pass
 endif
 
 TARGET?=patch
