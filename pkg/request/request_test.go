@@ -1,3 +1,5 @@
+//go:build test
+
 package request_test
 
 import (

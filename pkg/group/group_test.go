@@ -1,3 +1,5 @@
+//go:build test
+
 package group_test
 
 import (

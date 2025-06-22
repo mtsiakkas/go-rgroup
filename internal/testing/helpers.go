@@ -1,3 +1,4 @@
+//go:build test
 
 package testing_helpers
 
