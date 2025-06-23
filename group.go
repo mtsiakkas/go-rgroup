@@ -9,10 +9,11 @@ import (
 )
 
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
+type HandlerMap map[string]Handler
 type Middleware func(Handler) Handler
 
 type HandlerGroup struct {
-	handlers      map[string]Handler
+	handlers      HandlerMap
 	postprocessor func(context.Context, *RequestData)
 }
 
@@ -36,7 +37,7 @@ func New() *HandlerGroup {
 
 // Create a new handler group for handler map.
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
-func NewWithHandlers(handlers map[string]Handler) *HandlerGroup {
+func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	if _, ok := handlers[http.MethodOptions]; ok {
 		switch GetOnOptionsHandler() {
 		case OptionsHandlerPanic:
@@ -64,7 +65,7 @@ func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
 
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	if h.handlers == nil {
-		h.handlers = make(map[string]Handler)
+		h.handlers = make(HandlerMap)
 	}
 
 	m := strings.ToUpper(method)

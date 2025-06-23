@@ -94,13 +94,13 @@ func TestGlobalPostprocessor(t *testing.T) {
 		fmt.Println("global postprocessor")
 	})
 
-	h := rgroup.NewWithHandlers(map[string]rgroup.Handler{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+	h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 		return nil, nil
 	}}).Make()
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	res := CaptureOutput(func() { h(rr, req) })
+	res := captureOutput(func() { h(rr, req) })
 	if res != "global postprocessor\n" {
 		t.Logf("unexpected log: %s", res)
 		t.Fail()

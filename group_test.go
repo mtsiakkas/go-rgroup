@@ -19,7 +19,7 @@ import (
 func TestHandler(t *testing.T) {
 
 	t.Run("new with handlers", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
@@ -130,7 +130,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("struct response", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				o := struct {
 					Data string `json:"data"`
@@ -165,7 +165,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("with bytes", func(t *testing.T) {
 		b := []byte("test")
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
 			},
@@ -193,7 +193,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("error", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, rgroup.Error(http.StatusForbidden)
 			},
@@ -220,7 +220,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("method not allowed", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, rgroup.Error(http.StatusForbidden)
 			},
@@ -238,7 +238,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("generic err", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, errors.New("test error")
 			},
@@ -261,7 +261,7 @@ func TestGlobalSettings(t *testing.T) {
 		t.Run("panic", func(t *testing.T) {
 			defer func() { _ = recover() }()
 
-			_ = rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			_ = rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
 				},
@@ -280,7 +280,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
-			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
 				},
@@ -310,7 +310,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
-			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, rgroup.Error(http.StatusForbidden)
 				},
@@ -349,7 +349,7 @@ func TestGlobalSettings(t *testing.T) {
 
 			defer func() { _ = recover() }()
 
-			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, nil
 				},
@@ -368,7 +368,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
-			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return nil, nil
 				},
@@ -389,7 +389,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
-			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return rgroup.Response("get1"), nil
 				},
@@ -421,7 +421,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
-			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 					return rgroup.Response("get1"), nil
 				},
@@ -451,7 +451,7 @@ func TestGlobalSettings(t *testing.T) {
 }
 
 func TestOptions(t *testing.T) {
-	h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+	h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 		"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 		},
@@ -475,7 +475,7 @@ func TestOptions(t *testing.T) {
 
 func TestPostprocessor(t *testing.T) {
 	t.Run("print", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
@@ -484,7 +484,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := CaptureOutput(func() { h(rr, req) })
+		out := captureOutput(func() { h(rr, req) })
 
 		if !strings.Contains(out, "GET 202 / [") || !strings.HasSuffix(out, "test message\n") {
 			t.Logf("unexpected output: \"%s\"", out)
@@ -498,7 +498,7 @@ func TestPostprocessor(t *testing.T) {
 		}
 		rgroup.SetGlobalPostprocessor(print)
 
-		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
@@ -509,7 +509,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := CaptureOutput(func() { h(rr, req) })
+		out := captureOutput(func() { h(rr, req) })
 
 		if out != "global\n" {
 			t.Logf("unexpected log: %s", out)
@@ -522,7 +522,7 @@ func TestPostprocessor(t *testing.T) {
 			fmt.Println("request complete")
 		}
 
-		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				time.Sleep(1 * time.Second)
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
@@ -536,7 +536,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := CaptureOutput(func() { h(rr, req) })
+		out := captureOutput(func() { h(rr, req) })
 
 		if out != "request complete\n" {
 			t.Logf("unexpected log: %s", out)
@@ -552,7 +552,7 @@ func TestPostprocessor(t *testing.T) {
 			fmt.Println("request complete: " + c)
 		}
 
-		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
@@ -570,7 +570,7 @@ func TestPostprocessor(t *testing.T) {
 			nil,
 		)
 
-		out := CaptureOutput(func() { h(rr, req) })
+		out := captureOutput(func() { h(rr, req) })
 
 		if out != "request complete: context test\n" {
 			t.Logf("unexpected log: %s", out)

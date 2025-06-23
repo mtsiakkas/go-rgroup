@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func CaptureOutput(f func()) string {
+func captureOutput(f func()) string {
 	reader, writer, err := os.Pipe()
 	if err != nil {
 		panic(err)
