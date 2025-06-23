@@ -1,6 +1,4 @@
-//go:build test
-
-package group_test
+package rgroup_test
 
 import (
 	"context"
@@ -16,17 +14,13 @@ import (
 	"time"
 
 	"github.com/mtsiakkas/go-rgroup"
-	testing_helpers "github.com/mtsiakkas/go-rgroup/internal/testing"
-	"github.com/mtsiakkas/go-rgroup/pkg/config"
-	"github.com/mtsiakkas/go-rgroup/pkg/group"
-	"github.com/mtsiakkas/go-rgroup/pkg/request"
-	"github.com/mtsiakkas/go-rgroup/pkg/response"
 )
 
 func TestHandler(t *testing.T) {
+
 	t.Run("new with handlers", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		}).Make()
@@ -55,7 +49,7 @@ func TestHandler(t *testing.T) {
 		g := rgroup.New()
 
 		_ = g.AddHandler(
-			"GET", func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			"GET", func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			})
 
@@ -86,27 +80,27 @@ func TestHandler(t *testing.T) {
 		g := rgroup.New()
 
 		_ = g.Get(
-			func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("GET").WithHttpStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Post(
-			func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("POST").WithHttpStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Patch(
-			func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("PATCH").WithHttpStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Put(
-			func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("PUT").WithHttpStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Delete(
-			func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("DELETE").WithHttpStatus(http.StatusAccepted), nil
 			})
 
@@ -136,8 +130,8 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("struct response", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				o := struct {
 					Data string `json:"data"`
 				}{
@@ -171,8 +165,8 @@ func TestHandler(t *testing.T) {
 
 	t.Run("with bytes", func(t *testing.T) {
 		b := []byte("test")
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
 			},
 		}).Make()
@@ -198,198 +192,9 @@ func TestHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("overwrite options", func(t *testing.T) {
-		t.Run("panic", func(t *testing.T) {
-			defer func() { _ = recover() }()
-
-			_ = rgroup.NewWithHandlers(map[string]group.Handler{
-				"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, rgroup.Error(http.StatusForbidden)
-				},
-				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, nil
-				},
-			}).Make()
-
-			t.Log("should panic")
-			t.Fail()
-		})
-
-		t.Run("overwrite", func(t *testing.T) {
-
-			if err := config.OnOptionsHandler(config.OptionsHandlerOverwrite); err != nil {
-				t.Logf("unexpected error: %s", err)
-				t.FailNow()
-			}
-			h := rgroup.NewWithHandlers(map[string]group.Handler{
-				"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, rgroup.Error(http.StatusForbidden)
-				},
-				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return rgroup.Response("overwrite"), nil
-				},
-			}).Make()
-
-			rr := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodOptions, "/", nil)
-
-			h(rr, req)
-			b, err := io.ReadAll(rr.Result().Body)
-			if err != nil {
-				t.Logf("failed to read response body: %s", err)
-				t.Fail()
-			}
-			if string(b) != "overwrite" {
-				t.Logf("OptionsHandlerBehaviour: Overwrite - failed: expected response \"overwrite\" got \"%s\"", string(b))
-				t.Fail()
-			}
-		})
-
-		t.Run("duplicate handler", func(t *testing.T) {
-
-			t.Run("panic", func(t *testing.T) {
-				defer func() { _ = recover() }()
-
-				g := rgroup.NewWithHandlers(map[string]group.Handler{
-					"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-						return nil, nil
-					},
-				})
-
-				_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, nil
-				})
-
-				t.Log("should panic")
-				t.Fail()
-			})
-
-			t.Run("error", func(t *testing.T) {
-				if err := config.OnDuplicateMethod(config.DuplicateMethodError); err != nil {
-					t.Logf("unexpected error: %s", err)
-					t.FailNow()
-				}
-				g := rgroup.NewWithHandlers(map[string]group.Handler{
-					"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-						return nil, nil
-					},
-				})
-
-				err := g.Get(func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, nil
-				})
-
-				if err == nil {
-					t.Log("expected error")
-					t.Fail()
-				}
-			})
-
-			t.Run("ignore", func(t *testing.T) {
-				if err := config.OnDuplicateMethod(config.DuplicateMethodIgnore); err != nil {
-					t.Logf("unexpected error: %s", err)
-					t.FailNow()
-				}
-				g := rgroup.NewWithHandlers(map[string]group.Handler{
-					"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-						return rgroup.Response("get1"), nil
-					},
-				})
-
-				_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return rgroup.Response("get2"), nil
-				})
-
-				h := g.Make()
-				rr := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
-
-				h(rr, req)
-				b, err := io.ReadAll(rr.Result().Body)
-				if err != nil {
-					t.Logf("failed to read response body: %s", err)
-					t.Fail()
-				}
-				if string(b) != "get1" {
-					t.Logf("DuplicateHandlerIgnore unexpected output: got \"%s\"", string(b))
-					t.Fail()
-				}
-
-			})
-
-			t.Run("overwrite", func(t *testing.T) {
-				if err := config.OnDuplicateMethod(config.DuplicateMethodOverwrite); err != nil {
-					t.Logf("unexpected error: %s", err)
-					t.FailNow()
-				}
-				g := rgroup.NewWithHandlers(map[string]group.Handler{
-					"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-						return rgroup.Response("get1"), nil
-					},
-				})
-
-				_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return rgroup.Response("get2"), nil
-				})
-
-				h := g.Make()
-				rr := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
-
-				h(rr, req)
-				b, err := io.ReadAll(rr.Result().Body)
-				if err != nil {
-					t.Logf("failed to read response body: %s", err)
-					t.Fail()
-				}
-				if string(b) != "get2" {
-					t.Logf("DuplicateHandlerOverwrite unexpected output: got \"%s\"", string(b))
-					t.Fail()
-				}
-			})
-
-		})
-
-		t.Run("ignore", func(t *testing.T) {
-
-			if err := config.OnOptionsHandler(config.OptionsHandlerIgnore); err != nil {
-				t.Logf("unexpected error: %s", err)
-				t.FailNow()
-			}
-			h := rgroup.NewWithHandlers(map[string]group.Handler{
-				"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return nil, rgroup.Error(http.StatusForbidden)
-				},
-				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
-					return rgroup.Response("failed"), nil
-				},
-			}).Make()
-
-			rr := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodOptions, "/", nil)
-
-			h(rr, req)
-			b, err := io.ReadAll(rr.Result().Body)
-			if err != nil {
-				t.Logf("failed to read response body: %s", err)
-				t.Fail()
-			}
-			if string(b) == "failed" {
-				t.Logf("OptionsHandlerBehaviour: Ignore - failed: got \"%s\"", string(b))
-				t.Fail()
-			}
-			allow := strings.Split(rr.Header().Get("Allow"), ",")
-			if !slices.Contains(allow, http.MethodGet) || !slices.Contains(allow, http.MethodOptions) {
-				t.Logf("unexpected allow header: %s", rr.Header().Get("Allow"))
-				t.Fail()
-			}
-		})
-
-	})
-
-	t.Run("fail", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+	t.Run("error", func(t *testing.T) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, rgroup.Error(http.StatusForbidden)
 			},
 		}).Make()
@@ -415,8 +220,8 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("method not allowed", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, rgroup.Error(http.StatusForbidden)
 			},
 		}).Make()
@@ -433,8 +238,8 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("generic err", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return nil, errors.New("test error")
 			},
 		}).Make()
@@ -451,12 +256,206 @@ func TestHandler(t *testing.T) {
 	})
 }
 
+func TestGlobalSettings(t *testing.T) {
+	t.Run("options handler", func(t *testing.T) {
+		t.Run("panic", func(t *testing.T) {
+			defer func() { _ = recover() }()
+
+			_ = rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, rgroup.Error(http.StatusForbidden)
+				},
+				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, nil
+				},
+			}).Make()
+
+			t.Log("should panic")
+			t.Fail()
+		})
+
+		t.Run("overwrite", func(t *testing.T) {
+
+			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerOverwrite); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
+			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, rgroup.Error(http.StatusForbidden)
+				},
+				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return rgroup.Response("overwrite"), nil
+				},
+			}).Make()
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodOptions, "/", nil)
+
+			h(rr, req)
+			b, err := io.ReadAll(rr.Result().Body)
+			if err != nil {
+				t.Logf("failed to read response body: %s", err)
+				t.Fail()
+			}
+			if string(b) != "overwrite" {
+				t.Logf("OptionsHandlerBehaviour: Overwrite - failed: expected response \"overwrite\" got \"%s\"", string(b))
+				t.Fail()
+			}
+		})
+
+		t.Run("ignore", func(t *testing.T) {
+
+			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
+			h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, rgroup.Error(http.StatusForbidden)
+				},
+				"OPTIONS": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return rgroup.Response("failed"), nil
+				},
+			}).Make()
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodOptions, "/", nil)
+
+			h(rr, req)
+			b, err := io.ReadAll(rr.Result().Body)
+			if err != nil {
+				t.Logf("failed to read response body: %s", err)
+				t.Fail()
+			}
+			if string(b) == "failed" {
+				t.Logf("OptionsHandlerBehaviour: Ignore - failed: got \"%s\"", string(b))
+				t.Fail()
+			}
+			allow := strings.Split(rr.Header().Get("Allow"), ",")
+			if !slices.Contains(allow, http.MethodGet) || !slices.Contains(allow, http.MethodOptions) {
+				t.Logf("unexpected allow header: %s", rr.Header().Get("Allow"))
+				t.Fail()
+			}
+		})
+	})
+
+	t.Run("duplicate handler", func(t *testing.T) {
+		if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodPanic); err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+		t.Run("panic", func(t *testing.T) {
+
+			defer func() { _ = recover() }()
+
+			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, nil
+				},
+			})
+
+			_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return nil, nil
+			})
+
+			t.Log("should panic")
+			t.Fail()
+		})
+
+		t.Run("error", func(t *testing.T) {
+			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
+			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return nil, nil
+				},
+			})
+
+			err := g.Get(func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return nil, nil
+			})
+
+			if err == nil {
+				t.Log("expected error")
+				t.Fail()
+			}
+		})
+
+		t.Run("ignore", func(t *testing.T) {
+			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodIgnore); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
+			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return rgroup.Response("get1"), nil
+				},
+			})
+
+			_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return rgroup.Response("get2"), nil
+			})
+
+			h := g.Make()
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			h(rr, req)
+			b, err := io.ReadAll(rr.Result().Body)
+			if err != nil {
+				t.Logf("failed to read response body: %s", err)
+				t.Fail()
+			}
+			if string(b) != "get1" {
+				t.Logf("DuplicateHandlerIgnore unexpected output: got \"%s\"", string(b))
+				t.Fail()
+			}
+
+		})
+
+		t.Run("overwrite", func(t *testing.T) {
+			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite); err != nil {
+				t.Logf("unexpected error: %s", err)
+				t.FailNow()
+			}
+			g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+				"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+					return rgroup.Response("get1"), nil
+				},
+			})
+
+			_ = g.Get(func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return rgroup.Response("get2"), nil
+			})
+
+			h := g.Make()
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			h(rr, req)
+			b, err := io.ReadAll(rr.Result().Body)
+			if err != nil {
+				t.Logf("failed to read response body: %s", err)
+				t.Fail()
+			}
+			if string(b) != "get2" {
+				t.Logf("DuplicateHandlerOverwrite unexpected output: got \"%s\"", string(b))
+				t.Fail()
+			}
+		})
+
+	})
+}
+
 func TestOptions(t *testing.T) {
-	h := rgroup.NewWithHandlers(map[string]group.Handler{
-		"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+	h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+		"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 		},
-		"POST": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		"POST": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 		},
 	}).Make()
@@ -476,8 +475,8 @@ func TestOptions(t *testing.T) {
 
 func TestPostprocessor(t *testing.T) {
 	t.Run("print", func(t *testing.T) {
-		h := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		h := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		}).Make()
@@ -485,7 +484,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
+		out := CaptureOutput(func() { h(rr, req) })
 
 		if !strings.Contains(out, "GET 202 / [") || !strings.HasSuffix(out, "test message\n") {
 			t.Logf("unexpected output: \"%s\"", out)
@@ -494,13 +493,13 @@ func TestPostprocessor(t *testing.T) {
 	})
 
 	t.Run("global", func(t *testing.T) {
-		print := func(ctx context.Context, r *request.RequestData) {
+		print := func(ctx context.Context, r *rgroup.RequestData) {
 			fmt.Println("global")
 		}
-		config.SetGlobalPostprocessor(print)
+		rgroup.SetGlobalPostprocessor(print)
 
-		g := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
@@ -510,7 +509,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
+		out := CaptureOutput(func() { h(rr, req) })
 
 		if out != "global\n" {
 			t.Logf("unexpected log: %s", out)
@@ -519,12 +518,12 @@ func TestPostprocessor(t *testing.T) {
 	})
 
 	t.Run("global + local", func(t *testing.T) {
-		print := func(ctx context.Context, r *request.RequestData) {
+		print := func(ctx context.Context, r *rgroup.RequestData) {
 			fmt.Println("request complete")
 		}
 
-		g := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				time.Sleep(1 * time.Second)
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
@@ -537,7 +536,7 @@ func TestPostprocessor(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
+		out := CaptureOutput(func() { h(rr, req) })
 
 		if out != "request complete\n" {
 			t.Logf("unexpected log: %s", out)
@@ -548,13 +547,13 @@ func TestPostprocessor(t *testing.T) {
 	t.Run("request with context", func(t *testing.T) {
 
 		type ContextKey string
-		print := func(ctx context.Context, r *request.RequestData) {
+		print := func(ctx context.Context, r *rgroup.RequestData) {
 			c := r.Context.Value(ContextKey("test")).(string)
 			fmt.Println("request complete: " + c)
 		}
 
-		g := rgroup.NewWithHandlers(map[string]group.Handler{
-			"GET": func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+		g := rgroup.NewWithHandlers(map[string]rgroup.Handler{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
@@ -571,7 +570,7 @@ func TestPostprocessor(t *testing.T) {
 			nil,
 		)
 
-		out := testing_helpers.CaptureOutput(func() { h(rr, req) })
+		out := CaptureOutput(func() { h(rr, req) })
 
 		if out != "request complete: context test\n" {
 			t.Logf("unexpected log: %s", out)

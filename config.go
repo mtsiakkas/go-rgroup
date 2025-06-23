@@ -1,10 +1,8 @@
-package config
+package rgroup
 
 import (
 	"context"
 	"fmt"
-
-	"github.com/mtsiakkas/go-rgroup/pkg/request"
 )
 
 type DuplicateMethodBehaviour int
@@ -83,12 +81,12 @@ func GetOnOptionsHandler() OptionsHandlerBehaviour {
 	return optionsHandlerBehaviour
 }
 
-var globalRequestPostprocessor func(context.Context, *request.RequestData)
+var globalRequestPostprocessor func(context.Context, *RequestData)
 
-func SetGlobalPostprocessor(p func(context.Context, *request.RequestData)) {
+func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
 	globalRequestPostprocessor = p
 }
 
-func GetGlobalPostprocessor() func(context.Context, *request.RequestData) {
+func GetGlobalPostprocessor() func(context.Context, *RequestData) {
 	return globalRequestPostprocessor
 }

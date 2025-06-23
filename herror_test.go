@@ -1,6 +1,4 @@
-//go:build test
-
-package herror_test
+package rgroup_test
 
 import (
 	"net/http"
@@ -8,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/mtsiakkas/go-rgroup"
-	"github.com/mtsiakkas/go-rgroup/pkg/herror"
 )
 
 func TestError(t *testing.T) {
 	e := rgroup.Error(http.StatusInternalServerError)
-	if !reflect.DeepEqual(herror.HandlerError{
+	if !reflect.DeepEqual(rgroup.HandlerError{
 		LogMessage: "",
 		ErrorCode:  "",
 		HttpStatus: http.StatusInternalServerError,
@@ -23,7 +20,7 @@ func TestError(t *testing.T) {
 	}
 
 	_ = e.WithMessage("test error: %s", "test message")
-	if !reflect.DeepEqual(herror.HandlerError{
+	if !reflect.DeepEqual(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		ErrorCode:  "",
 		HttpStatus: http.StatusInternalServerError,
@@ -33,7 +30,7 @@ func TestError(t *testing.T) {
 	}
 
 	_ = e.WithResponse("test error: %s", "test response")
-	if !reflect.DeepEqual(herror.HandlerError{
+	if !reflect.DeepEqual(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
 		ErrorCode:  "",
@@ -48,7 +45,7 @@ func TestError(t *testing.T) {
 		t.Fail()
 	}
 	_ = e.WithCode("TEST_ERR")
-	if !reflect.DeepEqual(herror.HandlerError{
+	if !reflect.DeepEqual(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
 		ErrorCode:  "TEST_ERR",

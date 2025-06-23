@@ -1,6 +1,15 @@
-package response
+package rgroup
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
+
+// Create new HandlerResponse with data
+func Response(data any) *HandlerResponse {
+	res := HandlerResponse{Data: data, HttpStatus: http.StatusOK}
+	return &res
+}
 
 type HandlerResponse struct {
 	Data       any

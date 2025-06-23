@@ -1,4 +1,4 @@
-package utils
+package rgroup
 
 import (
 	"context"
@@ -6,11 +6,9 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-
-	"github.com/mtsiakkas/go-rgroup/pkg/request"
 )
 
-func Print(ctx context.Context, r *request.RequestData) {
+func print(ctx context.Context, r *RequestData) {
 	printFunc := log.Printf
 	if r.IsError {
 		printFunc = func(s string, args ...any) { log.Printf("\033[31m"+s+"\033[0m", args...) }
@@ -31,7 +29,7 @@ func Print(ctx context.Context, r *request.RequestData) {
 	}
 }
 
-func Write(w http.ResponseWriter, d any) (int, error) {
+func write(w http.ResponseWriter, d any) (int, error) {
 	n := 0
 	var err error
 	if d != nil {

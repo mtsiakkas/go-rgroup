@@ -1,6 +1,12 @@
-package herror
+package rgroup
 
 import "fmt"
+
+// Create new HandlerError with code
+func Error(code int) *HandlerError {
+	e := HandlerError{HttpStatus: code}
+	return &e
+}
 
 type HandlerError struct {
 	LogMessage string

@@ -1,4 +1,4 @@
-package group
+package rgroup
 
 import (
 	"context"
@@ -6,20 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/mtsiakkas/go-rgroup/internal/utils"
-	"github.com/mtsiakkas/go-rgroup/pkg/config"
-	"github.com/mtsiakkas/go-rgroup/pkg/herror"
-	"github.com/mtsiakkas/go-rgroup/pkg/request"
-	"github.com/mtsiakkas/go-rgroup/pkg/response"
 )
 
-type Handler func(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error)
+type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
 type Middleware func(Handler) Handler
 
 type HandlerGroup struct {
 	handlers      map[string]Handler
-	postprocessor func(context.Context, *request.RequestData)
+	postprocessor func(context.Context, *RequestData)
 }
 
 func (h *HandlerGroup) MethodsAllowed() []string {
@@ -35,7 +29,36 @@ func (h *HandlerGroup) MethodsAllowed() []string {
 	return opts
 }
 
-func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *request.RequestData)) {
+// Create new empty handler group
+func New() *HandlerGroup {
+	return new(HandlerGroup)
+}
+
+// Create a new handler group for handler map.
+// If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
+func NewWithHandlers(handlers map[string]Handler) *HandlerGroup {
+	if _, ok := handlers[http.MethodOptions]; ok {
+		switch GetOnOptionsHandler() {
+		case OptionsHandlerPanic:
+			panic("cannot overwrite options handler")
+		case OptionsHandlerOverwrite:
+			fmt.Print("overwriting OPTIONS handler")
+		case OptionsHandlerIgnore:
+			delete(handlers, http.MethodOptions)
+			fmt.Print("ignoring OPTIONS handler")
+		default:
+			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", GetOnOptionsHandler()))
+		}
+	}
+
+	h := new(HandlerGroup)
+
+	for k, f := range handlers {
+		_ = h.AddHandler(k, f)
+	}
+	return h
+}
+func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
 	h.postprocessor = p
 }
 
@@ -46,18 +69,18 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 
 	m := strings.ToUpper(method)
 	if _, ok := h.handlers[m]; ok {
-		switch config.GetDuplicateMethod() {
-		case config.DuplicateMethodPanic:
+		switch GetDuplicateMethod() {
+		case DuplicateMethodPanic:
 			panic("cannot overwrite options handler")
-		case config.DuplicateMethodIgnore:
+		case DuplicateMethodIgnore:
 			fmt.Print("ignoring duplicate handler")
 			return nil
-		case config.DuplicateMethodOverwrite:
+		case DuplicateMethodOverwrite:
 			fmt.Print("overwriting OPTIONS handler")
-		case config.DuplicateMethodError:
+		case DuplicateMethodError:
 			return fmt.Errorf("handler for %s already set", m)
 		default:
-			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", config.GetDuplicateMethod()))
+			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", GetDuplicateMethod()))
 		}
 	}
 
@@ -86,10 +109,10 @@ func (h *HandlerGroup) Get(handler Handler) error {
 	return h.AddHandler("GET", handler)
 }
 
-func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*response.HandlerResponse, error) {
+func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == "OPTIONS" {
 		// check if custom options handler was provided
-		if f, ok := h.handlers[req.Method]; ok && config.GetOnOptionsHandler() == config.OptionsHandlerOverwrite {
+		if f, ok := h.handlers[req.Method]; ok && GetOnOptionsHandler() == OptionsHandlerOverwrite {
 			return f(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
@@ -101,7 +124,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*respons
 		return f(w, req)
 	} else {
 		// if method is not found in group, return MethodNotAllowed error
-		return nil, &herror.HandlerError{HttpStatus: http.StatusMethodNotAllowed}
+		return nil, &HandlerError{HttpStatus: http.StatusMethodNotAllowed}
 	}
 }
 
@@ -110,17 +133,17 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 	// set handler request postprocessor
 	// local > global > default
 	if h.postprocessor == nil {
-		if config.GetGlobalPostprocessor() != nil {
-			h.postprocessor = config.GetGlobalPostprocessor()
+		if GetGlobalPostprocessor() != nil {
+			h.postprocessor = GetGlobalPostprocessor()
 		} else {
-			h.postprocessor = utils.Print
+			h.postprocessor = print
 		}
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 
-		l := request.FromRequest(req)
+		l := FromRequest(req)
 		res, err := h.serve(w, req)
 		l.Time()
 
@@ -129,7 +152,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 		}()
 
 		if err != nil {
-			me := new(herror.HandlerError)
+			me := new(HandlerError)
 			if errors.As(err, &me) {
 				l.Status = me.HttpStatus
 			} else {
@@ -148,7 +171,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 					w.WriteHeader(l.Status)
 				}
 			}
-			l.ResponseSize, _ = utils.Write(w, res.Data)
+			l.ResponseSize, _ = write(w, res.Data)
 			if res.LogMessage != "" {
 				l.Message = res.LogMessage
 			}

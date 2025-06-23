@@ -1,6 +1,4 @@
-//go:build test
-
-package response_test
+package rgroup_test
 
 import (
 	"net/http"
