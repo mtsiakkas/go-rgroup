@@ -9,6 +9,7 @@ func Error(code int) *HandlerError {
 }
 
 type HandlerError struct {
+	err        error
 	LogMessage string
 	Response   string
 	ErrorCode  string
@@ -31,5 +32,17 @@ func (e *HandlerError) WithCode(code string) *HandlerError {
 }
 
 func (e HandlerError) Error() string {
+	if e.err != nil {
+		return fmt.Sprintf("%s: %s", e.LogMessage, e.err)
+	}
 	return e.LogMessage
+}
+
+func (e *HandlerError) Wrap(err error) *HandlerError {
+	e.err = err
+	return e
+}
+
+func (e *HandlerError) Unwrap() error {
+	return e.err
 }

@@ -54,6 +54,20 @@ func TestError(t *testing.T) {
 		t.Log("WithCode failed")
 		t.Fail()
 	}
+
+	etmp := errors.New("error")
+	e2 := rgroup.Error(http.StatusInternalServerError).WithMessage("test").Wrap(etmp)
+	if e2.Error() != "test: error" {
+		t.Logf("unexpected error message: \"%s\"", e2)
+		t.Fail()
+	}
+
+	if e2.Unwrap() != etmp {
+		t.Logf("unexpected error unwrap: \"%s\"", e2.Unwrap())
+		t.Fail()
+	}
+}
+
 func errorCompare(e1 rgroup.HandlerError, e2 rgroup.HandlerError) bool {
 	return e1.ErrorCode == e2.ErrorCode &&
 		e1.Response == e2.Response &&
