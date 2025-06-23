@@ -1,8 +1,8 @@
 package rgroup_test
 
 import (
+	"errors"
 	"net/http"
-	"reflect"
 	"testing"
 
 	"github.com/mtsiakkas/go-rgroup"
@@ -10,7 +10,7 @@ import (
 
 func TestError(t *testing.T) {
 	e := rgroup.Error(http.StatusInternalServerError)
-	if !reflect.DeepEqual(rgroup.HandlerError{
+	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "",
 		ErrorCode:  "",
 		HttpStatus: http.StatusInternalServerError,
@@ -20,7 +20,7 @@ func TestError(t *testing.T) {
 	}
 
 	_ = e.WithMessage("test error: %s", "test message")
-	if !reflect.DeepEqual(rgroup.HandlerError{
+	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		ErrorCode:  "",
 		HttpStatus: http.StatusInternalServerError,
@@ -30,7 +30,7 @@ func TestError(t *testing.T) {
 	}
 
 	_ = e.WithResponse("test error: %s", "test response")
-	if !reflect.DeepEqual(rgroup.HandlerError{
+	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
 		ErrorCode:  "",
@@ -45,7 +45,7 @@ func TestError(t *testing.T) {
 		t.Fail()
 	}
 	_ = e.WithCode("TEST_ERR")
-	if !reflect.DeepEqual(rgroup.HandlerError{
+	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
 		ErrorCode:  "TEST_ERR",
@@ -54,4 +54,9 @@ func TestError(t *testing.T) {
 		t.Log("WithCode failed")
 		t.Fail()
 	}
+func errorCompare(e1 rgroup.HandlerError, e2 rgroup.HandlerError) bool {
+	return e1.ErrorCode == e2.ErrorCode &&
+		e1.Response == e2.Response &&
+		e1.HttpStatus == e2.HttpStatus &&
+		e1.LogMessage == e2.LogMessage
 }
