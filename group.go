@@ -10,7 +10,6 @@ import (
 
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
 type HandlerMap map[string]Handler
-type Middleware func(Handler) Handler
 
 type HandlerGroup struct {
 	handlers      HandlerMap
