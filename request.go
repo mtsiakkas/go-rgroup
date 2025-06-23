@@ -1,7 +1,6 @@
 package rgroup
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,7 +18,7 @@ type RequestData struct {
 	Status       int
 	IsError      bool
 	ResponseSize int
-	Context      context.Context
+	Request      *http.Request
 }
 
 func FromRequest(req *http.Request) *RequestData {
@@ -29,7 +28,7 @@ func FromRequest(req *http.Request) *RequestData {
 		Params:  req.URL.Query(),
 		Status:  http.StatusOK,
 		Ts:      time.Now().UnixNano(),
-		Context: req.Context(),
+		Request: req,
 	}
 
 	return &l

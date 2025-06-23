@@ -548,7 +548,7 @@ func TestPostprocessor(t *testing.T) {
 
 		type ContextKey string
 		print := func(ctx context.Context, r *rgroup.RequestData) {
-			c := r.Context.Value(ContextKey("test")).(string)
+			c := r.Request.Context().Value(ContextKey("test")).(string)
 			fmt.Println("request complete: " + c)
 		}
 
