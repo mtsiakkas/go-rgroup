@@ -12,7 +12,6 @@ type HandlerError struct {
 	err        error
 	LogMessage string
 	Response   string
-	ErrorCode  string
 	HttpStatus int
 }
 
@@ -23,11 +22,6 @@ func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
-	return e
-}
-
-func (e *HandlerError) WithCode(code string) *HandlerError {
-	e.ErrorCode = code
 	return e
 }
 
