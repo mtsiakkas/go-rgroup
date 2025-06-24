@@ -1,9 +1,9 @@
 .PHONY: test
 test:
 ifeq (, $(shell which tparse 2>/dev/null))
-	@go test -cover ./...
+	@go test -cover -coverprofile=c.out ./... 
 else
-	@go test -json -cover ./... | tparse -pass
+	@go test -json -cover -coverprofile=c.out ./... | tparse -pass
 endif
 
 TARGET?=patch
