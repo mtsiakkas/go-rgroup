@@ -23,9 +23,9 @@ func print(ctx context.Context, r *RequestData) {
 	}
 
 	if r.Message != "" {
-		printFunc("%s %d %s [%3.1f%s]\n%s", r.Method, r.Status, r.Path, dur, units[i], r.Message)
+		printFunc("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units[i], r.Message)
 	} else {
-		printFunc("%s %d %s [%3.1f%s]", r.Method, r.Status, r.Path, dur, units[i])
+		printFunc("%s %d %s [%3.1f%s]", r.Request.Method, r.Status, r.Path, dur, units[i])
 	}
 }
 
