@@ -133,8 +133,9 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 	// set handler request postprocessor
 	// local > global > default
 	if h.postprocessor == nil {
-		if GetGlobalPostprocessor() != nil {
-			h.postprocessor = GetGlobalPostprocessor()
+		g := GetGlobalPostprocessor()
+		if g != nil {
+			h.postprocessor = g
 		} else {
 			h.postprocessor = print
 		}

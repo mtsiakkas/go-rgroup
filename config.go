@@ -5,6 +5,18 @@ import (
 	"fmt"
 )
 
+type GlobalConfig struct {
+	DuplicateMethod      DuplicateMethodBehaviour
+	OptionsHandler       OptionsHandlerBehaviour
+	RequestPostProcessor func(context.Context, *RequestData)
+}
+
+var config GlobalConfig
+
+func SetGlobalConfig(cfg GlobalConfig) {
+	config = cfg
+}
+
 // DuplicateMethodBehaviour defines what should happen if the handler for a method is reassigned
 type DuplicateMethodBehaviour int
 
@@ -32,22 +44,19 @@ func (d DuplicateMethodBehaviour) String() string {
 	return duplicateMethodOpts[d]
 }
 
-// Global state variable
-var duplicateMethodBehaviour DuplicateMethodBehaviour
-
 // Set duplicate method behaviour
 // returns error if unknown option is passed
 func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	if !o.Validate() {
 		return fmt.Errorf("unknown option %s", o)
 	}
-	duplicateMethodBehaviour = o
+	config.DuplicateMethod = o
 	return nil
 }
 
 // Return current duplicate method setting
 func GetDuplicateMethod() DuplicateMethodBehaviour {
-	return duplicateMethodBehaviour
+	return config.DuplicateMethod
 }
 
 // OptionsHandlerBehaviour defines what should happen if the OPTIONS handler is manually set
@@ -75,32 +84,26 @@ func (o OptionsHandlerBehaviour) Validate() bool {
 	return ok
 }
 
-// Global state variable
-var optionsHandlerBehaviour OptionsHandlerBehaviour
-
 // Set options method overwrite setting
 func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	if !o.Validate() {
 		return fmt.Errorf("unknown option %d", o)
 	}
-	optionsHandlerBehaviour = o
+	config.OptionsHandler = o
 	return nil
 }
 
 // Return the current options method overwrite behaviour
 func GetOnOptionsHandler() OptionsHandlerBehaviour {
-	return optionsHandlerBehaviour
+	return config.OptionsHandler
 }
-
-// Global state variable
-var globalRequestPostprocessor func(context.Context, *RequestData)
 
 // Set global request post processor
 func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
-	globalRequestPostprocessor = p
+	config.RequestPostProcessor = p
 }
 
 // Get global request post processor
 func GetGlobalPostprocessor() func(context.Context, *RequestData) {
-	return globalRequestPostprocessor
+	return config.RequestPostProcessor
 }
