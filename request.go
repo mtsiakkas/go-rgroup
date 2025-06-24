@@ -1,6 +1,7 @@
 package rgroup
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -33,4 +34,12 @@ func (l *RequestData) Time() int64 {
 		l.Duration = time.Now().UnixNano() - l.Ts
 	}
 	return l.Duration
+}
+
+func (r *RequestData) String() string {
+	dur, units := timeScale(r.Duration)
+	if r.Message != "" {
+		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units, r.Message)
+	}
+	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status, r.Path, dur, units)
 }

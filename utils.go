@@ -8,25 +8,24 @@ import (
 	"reflect"
 )
 
-func print(ctx context.Context, r *RequestData) {
-	printFunc := log.Printf
-	if r.IsError {
-		printFunc = func(s string, args ...any) { log.Printf("\033[31m"+s+"\033[0m", args...) }
-	}
-
-	dur := float32(r.Duration)
+func timeScale(t int64) (float32, string) {
+	dur := float32(t)
 	i := 0
 	units := []string{"ns", "us", "ms", "s"}
 	for dur > 1000 && i < 3 {
 		dur /= 1000
 		i++
 	}
+	return dur, units[i]
+}
 
-	if r.Message != "" {
-		printFunc("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units[i], r.Message)
-	} else {
-		printFunc("%s %d %s [%3.1f%s]", r.Request.Method, r.Status, r.Path, dur, units[i])
+func print(ctx context.Context, r *RequestData) {
+	printFunc := log.Printf
+	if r.IsError {
+		printFunc = func(s string, args ...any) { log.Printf("\033[31m"+s+"\033[0m", args...) }
 	}
+
+	printFunc(r.String())
 }
 
 func write(w http.ResponseWriter, d any) (int, error) {
