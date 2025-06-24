@@ -579,3 +579,52 @@ func TestPostprocessor(t *testing.T) {
 
 	})
 }
+
+func TestMiddleware(t *testing.T) {
+	g := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+		return rgroup.Response("test"), nil
+	}})
+
+	g.AddMiddleware(func(h rgroup.Handler) rgroup.Handler {
+		return func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			res, err := h(w, req)
+			if err != nil {
+				return nil, err
+			}
+
+			if _, ok := res.Data.(string); ok {
+				return rgroup.Response(res.Data.(string) + ": middleware 1"), nil
+			}
+			return nil, nil
+		}
+	}).AddMiddleware(func(h rgroup.Handler) rgroup.Handler {
+		return func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			res, err := h(w, req)
+			if err != nil {
+				return nil, err
+			}
+
+			if _, ok := res.Data.(string); ok {
+				return rgroup.Response(res.Data.(string) + ": middleware 2"), nil
+			}
+			return nil, nil
+		}
+	})
+
+	h := g.Make()
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	h(rr, req)
+
+	b, err := io.ReadAll(rr.Body)
+	if err != nil {
+		t.Logf("unexpected error: %s", err)
+		t.Fail()
+	}
+
+	if string(b) != "test: middleware 1: middleware 2" {
+		t.Logf("unexpected response: %s", string(b))
+		t.Fail()
+	}
+}

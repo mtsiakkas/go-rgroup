@@ -9,11 +9,13 @@ import (
 )
 
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
+type Middleware func(Handler) Handler
 type HandlerMap map[string]Handler
 
 type HandlerGroup struct {
 	handlers      HandlerMap
 	postprocessor func(context.Context, *RequestData)
+	middleware    []Middleware
 }
 
 func (h *HandlerGroup) MethodsAllowed() []string {
@@ -109,11 +111,28 @@ func (h *HandlerGroup) Get(handler Handler) error {
 	return h.AddHandler("GET", handler)
 }
 
+func (h Handler) ApplyMiddleware(middleware []Middleware) Handler {
+	f := h
+	for _, m := range middleware {
+		f = m(f)
+	}
+
+	return f
+}
+
+func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
+	if h.middleware == nil {
+		h.middleware = make([]Middleware, 0)
+	}
+	h.middleware = append(h.middleware, m)
+	return h
+}
+
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == "OPTIONS" {
 		// check if custom options handler was provided
 		if f, ok := h.handlers[req.Method]; ok && GetOnOptionsHandler() == OptionsHandlerOverwrite {
-			return f(w, req)
+			return f.ApplyMiddleware(h.middleware)(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
 		return nil, nil
@@ -121,7 +140,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 
 	if f, ok := h.handlers[req.Method]; ok {
 		// apply middleware
-		return f(w, req)
+		return f.ApplyMiddleware(h.middleware)(w, req)
 	} else {
 		// if method is not found in group, return MethodNotAllowed error
 		return nil, &HandlerError{HttpStatus: http.StatusMethodNotAllowed}
