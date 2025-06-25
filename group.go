@@ -11,7 +11,6 @@ import (
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
 type Middleware func(Handler) Handler
 type HandlerMap map[string]Handler
-
 type HandlerGroup struct {
 	handlers      HandlerMap
 	postprocessor func(context.Context, *RequestData)
@@ -33,7 +32,9 @@ func (h *HandlerGroup) MethodsAllowed() []string {
 
 // Create new empty handler group
 func New() *HandlerGroup {
-	return new(HandlerGroup)
+	h := new(HandlerGroup)
+	h.handlers = make(HandlerMap)
+	return h
 }
 
 // Create a new handler group for handler map.
@@ -54,6 +55,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	}
 
 	h := new(HandlerGroup)
+	h.handlers = make(HandlerMap)
 
 	for k, f := range handlers {
 		_ = h.AddHandler(k, f)
