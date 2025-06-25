@@ -8,10 +8,13 @@ import (
 type GlobalConfig struct {
 	DuplicateMethod      DuplicateMethodBehaviour
 	OptionsHandler       OptionsHandlerBehaviour
+	PostprocessOptions   bool
 	RequestPostProcessor func(context.Context, *RequestData)
 }
 
-var config GlobalConfig
+var config GlobalConfig = GlobalConfig{
+	PostprocessOptions: true,
+}
 
 func SetGlobalConfig(cfg GlobalConfig) {
 	config = cfg
@@ -50,6 +53,7 @@ func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	if !o.Validate() {
 		return fmt.Errorf("unknown option %s", o)
 	}
+
 	config.DuplicateMethod = o
 	return nil
 }
@@ -89,6 +93,7 @@ func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	if !o.Validate() {
 		return fmt.Errorf("unknown option %d", o)
 	}
+
 	config.OptionsHandler = o
 	return nil
 }
@@ -106,4 +111,8 @@ func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
 // Get global request post processor
 func GetGlobalPostprocessor() func(context.Context, *RequestData) {
 	return config.RequestPostProcessor
+}
+
+func SetPostprocessOptions(b bool) {
+	config.PostprocessOptions = b
 }

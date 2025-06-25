@@ -168,7 +168,13 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 		l.Time()
 
 		defer func() {
-			h.postprocessor(ctx, l)
+			if req.Method == http.MethodOptions {
+				if config.PostprocessOptions {
+					h.postprocessor(ctx, l)
+				}
+			} else {
+				h.postprocessor(ctx, l)
+			}
 		}()
 
 		if err != nil {
