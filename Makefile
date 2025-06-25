@@ -6,6 +6,10 @@ else
 	@go test -json -cover -coverprofile=c.out ./... | tparse -pass
 endif
 
+.PHONY: test.report
+test.report: test
+	@go tool cover -html=c.out
+
 TARGET?=patch
 BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 tag:
