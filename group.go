@@ -151,6 +151,10 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 
 // Generate http.HandlerFunc from HandlerGroup
 func (h HandlerGroup) Make() http.HandlerFunc {
+	if len(h.handlers) == 0 {
+		return func(w http.ResponseWriter, req *http.Request) {}
+	}
+
 	// set handler request postprocessor
 	// local > global > default
 	if h.postprocessor == nil {
