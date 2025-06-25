@@ -29,24 +29,20 @@ func print(ctx context.Context, r *RequestData) {
 }
 
 func write(w http.ResponseWriter, d any) (int, error) {
-	n := 0
-	var err error
-	if d != nil {
-		switch reflect.TypeOf(d) {
-		case reflect.TypeFor[string]():
-			n, err = w.Write([]byte(d.(string)))
-		case reflect.TypeFor[[]byte]():
-			n, err = w.Write(d.([]byte))
-		default:
-			dj, jerr := json.Marshal(d)
-			err = jerr
-			if jerr == nil {
-				n, err = w.Write(dj)
-			}
+	if d == nil {
+		return 0, nil
+	}
+
+	switch reflect.TypeOf(d) {
+	case reflect.TypeFor[string]():
+		return w.Write([]byte(d.(string)))
+	case reflect.TypeFor[[]byte]():
+		return w.Write(d.([]byte))
+	default:
+		dj, err := json.Marshal(d)
+		if err != nil {
+			return 0, err
 		}
+		return w.Write(dj)
 	}
-	if err != nil {
-		return 0, err
-	}
-	return n, nil
 }
