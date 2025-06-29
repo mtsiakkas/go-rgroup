@@ -628,3 +628,160 @@ func TestMiddleware(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestEnvelope(t *testing.T) {
+	t.Run("envelope response", func(t *testing.T) {
+		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
+			EnvelopeResponse: true,
+		})
+
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
+		}}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.Fail()
+		}
+
+		if rr.Code != http.StatusOK {
+			t.Logf("unexpected code: %d", rr.Code)
+		}
+		if string(b) != "{\"data\":\"test\",\"status\":{\"http_status\":201}}" {
+			t.Logf("unexpected response: %s", string(b))
+			t.Fail()
+		}
+
+	})
+
+	t.Run("forward status code", func(t *testing.T) {
+		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
+			EnvelopeResponse:  true,
+			ForwardHttpStatus: true,
+		})
+
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
+		}}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.Fail()
+		}
+
+		if rr.Code != http.StatusCreated {
+			t.Logf("unexpected code: %d", rr.Code)
+		}
+		if string(b) != "{\"data\":\"test\",\"status\":{\"http_status\":201}}" {
+			t.Logf("unexpected response: %s", string(b))
+			t.Fail()
+		}
+
+	})
+
+	t.Run("with bytes", func(t *testing.T) {
+
+		rgroup.SetGlobalConfig(rgroup.GlobalConfig{EnvelopeResponse: true})
+		b := []byte("test")
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
+			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
+			},
+		}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		res, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.FailNow()
+		}
+
+		if !reflect.DeepEqual(res, []byte("test")) {
+			t.Logf("unexpected response: expected \"test\" got \"%s\"", res)
+			t.Fail()
+		}
+		if rr.Code != http.StatusCreated {
+			t.Logf("unexpected status code: expected 201 got \"%d\"", rr.Code)
+			t.Fail()
+		}
+	})
+
+	t.Run("forward message", func(t *testing.T) {
+		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
+			EnvelopeResponse:  true,
+			ForwardLogMessage: true,
+		})
+
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			return rgroup.Response("test").WithHttpStatus(http.StatusCreated).WithMessage("test message"), nil
+		}}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.Fail()
+		}
+
+		if rr.Code != http.StatusOK {
+			t.Logf("unexpected code: %d", rr.Code)
+		}
+
+		if string(b) != "{\"data\":\"test\",\"status\":{\"http_status\":201,\"message\":\"test message\"}}" {
+			t.Logf("unexpected response: %s", string(b))
+			t.Fail()
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
+			EnvelopeResponse: true,
+		})
+
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			return nil, rgroup.Error(http.StatusForbidden).WithMessage("test error")
+		}}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.Fail()
+		}
+
+		if rr.Code != http.StatusOK {
+			t.Logf("unexpected code: %d", rr.Code)
+		}
+
+		if string(b) != "{\"status\":{\"http_status\":403,\"error\":\"test error\"}}" {
+			t.Logf("unexpected response: %s", string(b))
+			t.Fail()
+		}
+	})
+
+	rgroup.SetGlobalConfig(rgroup.GlobalConfig{EnvelopeResponse: false})
+}
