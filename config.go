@@ -119,3 +119,15 @@ func GetGlobalPostprocessor() func(context.Context, *RequestData) {
 func SetPostprocessOptions(b bool) {
 	config.PostprocessOptions = b
 }
+
+func SetForwardLogMessage(b bool) {
+	config.ForwardLogMessage = b
+}
+
+func SetForwardHttpStatus(b bool) {
+	config.ForwardHttpStatus = b
+}
+
+func SetEnvelopeResponse(b bool) {
+	config.EnvelopeResponse = b
+}

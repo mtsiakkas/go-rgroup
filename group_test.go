@@ -630,10 +630,8 @@ func TestMiddleware(t *testing.T) {
 }
 
 func TestEnvelope(t *testing.T) {
+	rgroup.SetEnvelopeResponse(true)
 	t.Run("envelope response", func(t *testing.T) {
-		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
-			EnvelopeResponse: true,
-		})
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
@@ -661,10 +659,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("forward status code", func(t *testing.T) {
-		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
-			EnvelopeResponse:  true,
-			ForwardHttpStatus: true,
-		})
+		rgroup.SetForwardHttpStatus(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
@@ -693,7 +688,6 @@ func TestEnvelope(t *testing.T) {
 
 	t.Run("with bytes", func(t *testing.T) {
 
-		rgroup.SetGlobalConfig(rgroup.GlobalConfig{EnvelopeResponse: true})
 		b := []byte("test")
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
@@ -723,10 +717,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("forward message", func(t *testing.T) {
-		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
-			EnvelopeResponse:  true,
-			ForwardLogMessage: true,
-		})
+		rgroup.SetForwardLogMessage(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHttpStatus(http.StatusCreated).WithMessage("test message"), nil
@@ -783,5 +774,5 @@ func TestEnvelope(t *testing.T) {
 		}
 	})
 
-	rgroup.SetGlobalConfig(rgroup.GlobalConfig{EnvelopeResponse: false})
+	rgroup.SetGlobalConfig(rgroup.GlobalConfig{})
 }
