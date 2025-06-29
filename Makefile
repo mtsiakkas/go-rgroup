@@ -11,12 +11,10 @@ test.report: test
 	@go tool cover -html=c.out
 
 TARGET?=patch
-BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 tag:
 ifeq (, $(shell which git-semver 2>/dev/null))
 	@echo "git-semver is required for tagging"
 else
-
 	$(eval TAG=$(shell git-semver -target $(TARGET) -prefix v -no-meta))
 	@echo $(TAG)
 endif
