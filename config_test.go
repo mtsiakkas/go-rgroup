@@ -46,7 +46,7 @@ func TestGlobalDuplicateHandler(t *testing.T) {
 		}
 	})
 
-	rgroup.OnDuplicateMethod(rgroup.DuplicateMethodPanic)
+	_ = rgroup.OnDuplicateMethod(rgroup.DuplicateMethodPanic)
 
 }
 
@@ -86,7 +86,7 @@ func TestGlobalOptionsHandler(t *testing.T) {
 		}
 	})
 
-	rgroup.OnOptionsHandler(rgroup.OptionsHandlerPanic)
+	_ = rgroup.OnOptionsHandler(rgroup.OptionsHandlerPanic)
 }
 
 func TestGlobalPostprocessor(t *testing.T) {
