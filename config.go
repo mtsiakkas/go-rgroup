@@ -9,6 +9,9 @@ type GlobalConfig struct {
 	DuplicateMethod      DuplicateMethodBehaviour
 	OptionsHandler       OptionsHandlerBehaviour
 	PostprocessOptions   bool
+	EnvelopeResponse     bool
+	ForwardHttpStatus    bool
+	ForwardLogMessage    bool
 	RequestPostProcessor func(context.Context, *RequestData)
 }
 

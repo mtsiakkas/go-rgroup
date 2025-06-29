@@ -26,3 +26,14 @@ func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerRespo
 	r.LogMessage = fmt.Sprintf(message, args...)
 	return r
 }
+
+type EnvelopeStatus struct {
+	HttpCode int     `json:"http_status"`
+	Message  *string `json:"message,omitempty"`
+	Error    *string `json:"error,omitempty"`
+}
+
+type Envelope struct {
+	Data   any            `json:"data,omitempty"`
+	Status EnvelopeStatus `json:"status"`
+}

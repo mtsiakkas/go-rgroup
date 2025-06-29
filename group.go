@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -184,29 +185,61 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 		}()
 
 		if err != nil {
+			l.IsError = true
+			l.Message = err.Error()
+
 			me := new(HandlerError)
 			if errors.As(err, &me) {
 				l.Status = me.HttpStatus
 			} else {
 				l.Status = http.StatusInternalServerError
 			}
+			if config.EnvelopeResponse {
+				env := Envelope{
+					Status: EnvelopeStatus{
+						Error:    &l.Message,
+						HttpCode: l.Status,
+					}}
+				l.ResponseSize, _ = write(w, env)
+				return
+			}
+
 			http.Error(w, me.Response, l.Status)
-			l.IsError = true
-			l.Message = err.Error()
 			return
 		}
 
 		if res != nil {
-			if http.StatusText(res.HttpStatus) != "" {
-				l.Status = res.HttpStatus
-				if l.Status != http.StatusOK {
-					w.WriteHeader(l.Status)
-				}
-			}
-			l.ResponseSize, _ = write(w, res.Data)
+
 			if res.LogMessage != "" {
 				l.Message = res.LogMessage
 			}
+
+			if http.StatusText(res.HttpStatus) != "" {
+				l.Status = res.HttpStatus
+			}
+
+			if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
+				env := Envelope{
+					Data:   res.Data,
+					Status: EnvelopeStatus{HttpCode: l.Status},
+				}
+				if config.ForwardLogMessage && l.Message != "" {
+					env.Status.Message = &l.Message
+				}
+
+				if config.ForwardHttpStatus {
+					if l.Status != http.StatusOK {
+						w.WriteHeader(l.Status)
+					}
+				}
+				l.ResponseSize, _ = write(w, env)
+				return
+			}
+
+			if l.Status != http.StatusOK {
+				w.WriteHeader(l.Status)
+			}
+			l.ResponseSize, _ = write(w, res.Data)
 		}
 	}
 }
