@@ -36,8 +36,10 @@ func write(w http.ResponseWriter, d any) (int, error) {
 
 	switch reflect.TypeOf(d) {
 	case reflect.TypeFor[string]():
+		//nolint
 		return w.Write([]byte(d.(string)))
 	case reflect.TypeFor[[]byte]():
+		//nolint
 		return w.Write(d.([]byte))
 	default:
 		dj, err := json.Marshal(d)
