@@ -143,7 +143,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
 
-		return nil, nil
+		return Response(nil), nil
 	}
 
 	if f, ok := h.handlers[req.Method]; ok {
