@@ -48,6 +48,7 @@ var duplicateMethodOpts = map[DuplicateMethodBehaviour]string{
 
 func (d DuplicateMethodBehaviour) Validate() bool {
 	_, ok := duplicateMethodOpts[d]
+
 	return ok
 }
 
@@ -64,6 +65,7 @@ func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	}
 
 	config.DuplicateMethod = o
+
 	return nil
 }
 
@@ -94,6 +96,7 @@ func (o OptionsHandlerBehaviour) String() string {
 
 func (o OptionsHandlerBehaviour) Validate() bool {
 	_, ok := optsOpts[o]
+
 	return ok
 }
 
@@ -104,6 +107,7 @@ func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	}
 
 	config.OptionsHandler = o
+
 	return nil
 }
 

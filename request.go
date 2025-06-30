@@ -37,6 +37,7 @@ func (r *RequestData) Time() int64 {
 	if r.Duration == 0 {
 		r.Duration = time.Now().UnixNano() - r.Ts
 	}
+
 	return r.Duration
 }
 
@@ -45,5 +46,6 @@ func (r *RequestData) String() string {
 	if r.Message != "" {
 		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units, r.Message)
 	}
+
 	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status, r.Path, dur, units)
 }

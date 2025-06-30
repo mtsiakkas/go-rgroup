@@ -10,6 +10,7 @@ func Error(code int) *HandlerError {
 		LogMessage: "",
 		Response:   "",
 	}
+
 	return &e
 }
 
@@ -22,11 +23,13 @@ type HandlerError struct {
 
 func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 	e.LogMessage = fmt.Sprintf(message, args...)
+
 	return e
 }
 
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
+
 	return e
 }
 
@@ -34,11 +37,13 @@ func (e HandlerError) Error() string {
 	if e.err != nil {
 		return fmt.Sprintf("%s: %s", e.LogMessage, e.err)
 	}
+
 	return e.LogMessage
 }
 
 func (e *HandlerError) Wrap(err error) *HandlerError {
 	e.err = err
+
 	return e
 }
 

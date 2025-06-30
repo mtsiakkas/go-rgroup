@@ -35,6 +35,7 @@ func (h *HandlerGroup) MethodsAllowed() []string {
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
 	h.handlers = make(HandlerMap)
+
 	return h
 }
 
@@ -61,6 +62,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	for k, f := range handlers {
 		_ = h.AddHandler(k, f)
 	}
+
 	return h
 }
 func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
@@ -79,6 +81,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 			panic("cannot overwrite options handler")
 		case DuplicateMethodIgnore:
 			fmt.Print("ignoring duplicate handler")
+
 			return nil
 		case DuplicateMethodOverwrite:
 			fmt.Print("overwriting OPTIONS handler")
@@ -138,6 +141,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 			return f.ApplyMiddleware(h.middleware)(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
+
 		return nil, nil
 	}
 
@@ -203,10 +207,12 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 					Data: nil,
 				}
 				l.ResponseSize, _ = write(w, env)
+
 				return
 			}
 
 			http.Error(w, me.Response, l.Status)
+
 			return
 		}
 
@@ -239,6 +245,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 					}
 				}
 				l.ResponseSize, _ = write(w, env)
+
 				return
 			}
 

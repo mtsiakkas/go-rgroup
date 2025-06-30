@@ -16,6 +16,7 @@ func timeScale(t int64) (float32, string) {
 		dur /= 1000
 		i++
 	}
+
 	return dur, units[i]
 }
 
@@ -43,6 +44,7 @@ func write(w http.ResponseWriter, d any) (int, error) {
 		if err != nil {
 			return 0, err
 		}
+
 		return w.Write(dj)
 	}
 }
