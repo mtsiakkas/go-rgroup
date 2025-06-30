@@ -131,6 +131,7 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 		h.middleware = make([]Middleware, 0)
 	}
 	h.middleware = append(h.middleware, m)
+
 	return h
 }
 
@@ -193,7 +194,7 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 
 			me := new(HandlerError)
 			if errors.As(err, &me) {
-				l.Status = me.HttpStatus
+				l.Status = me.HTTPStatus
 			} else {
 				l.Status = http.StatusInternalServerError
 			}

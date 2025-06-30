@@ -5,7 +5,7 @@ import "fmt"
 // Create new HandlerError with code
 func Error(code int) *HandlerError {
 	e := HandlerError{
-		HttpStatus: code,
+		HTTPStatus: code,
 		err:        nil,
 		LogMessage: "",
 		Response:   "",
@@ -18,7 +18,7 @@ type HandlerError struct {
 	err        error
 	LogMessage string
 	Response   string
-	HttpStatus int
+	HTTPStatus int
 }
 
 func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {

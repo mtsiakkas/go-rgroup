@@ -12,7 +12,7 @@ func TestError(t *testing.T) {
 	e := rgroup.Error(http.StatusInternalServerError)
 	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "",
-		HttpStatus: http.StatusInternalServerError,
+		HTTPStatus: http.StatusInternalServerError,
 	}, *e) {
 		t.Log("rgroup.Error() failed")
 		t.Fail()
@@ -21,7 +21,7 @@ func TestError(t *testing.T) {
 	_ = e.WithMessage("test error: %s", "test message")
 	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "test error: test message",
-		HttpStatus: http.StatusInternalServerError,
+		HTTPStatus: http.StatusInternalServerError,
 	}, *e) {
 		t.Log("WithMessage failed")
 		t.Fail()
@@ -31,7 +31,7 @@ func TestError(t *testing.T) {
 	if !errorCompare(rgroup.HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
-		HttpStatus: http.StatusInternalServerError,
+		HTTPStatus: http.StatusInternalServerError,
 	}, *e) {
 		t.Log("WithResponse failed")
 		t.Fail()
@@ -52,6 +52,6 @@ func TestError(t *testing.T) {
 
 func errorCompare(e1 rgroup.HandlerError, e2 rgroup.HandlerError) bool {
 	return e1.Response == e2.Response &&
-		e1.HttpStatus == e2.HttpStatus &&
+		e1.HTTPStatus == e2.HTTPStatus &&
 		e1.LogMessage == e2.LogMessage
 }
