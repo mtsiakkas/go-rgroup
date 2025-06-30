@@ -16,7 +16,13 @@ type GlobalConfig struct {
 }
 
 var config = GlobalConfig{
-	PostprocessOptions: true,
+	PostprocessOptions:   true,
+	DuplicateMethod:      0,
+	OptionsHandler:       0,
+	EnvelopeResponse:     false,
+	ForwardHttpStatus:    false,
+	ForwardLogMessage:    false,
+	RequestPostProcessor: nil,
 }
 
 func SetGlobalConfig(cfg GlobalConfig) {

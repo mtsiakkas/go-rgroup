@@ -7,7 +7,11 @@ import (
 
 // Create new HandlerResponse with data
 func Response(data any) *HandlerResponse {
-	res := HandlerResponse{Data: data, HttpStatus: http.StatusOK}
+	res := HandlerResponse{
+		Data:       data,
+		HttpStatus: http.StatusOK,
+		LogMessage: "",
+	}
 	return &res
 }
 

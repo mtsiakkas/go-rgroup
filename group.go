@@ -198,7 +198,10 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 					Status: EnvelopeStatus{
 						Error:    &l.Message,
 						HttpCode: l.Status,
-					}}
+						Message:  nil,
+					},
+					Data: nil,
+				}
 				l.ResponseSize, _ = write(w, env)
 				return
 			}
@@ -219,8 +222,12 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 
 			if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 				env := Envelope{
-					Data:   res.Data,
-					Status: EnvelopeStatus{HttpCode: l.Status},
+					Data: res.Data,
+					Status: EnvelopeStatus{
+						HttpCode: l.Status,
+						Message:  nil,
+						Error:    nil,
+					},
 				}
 				if config.ForwardLogMessage && l.Message != "" {
 					env.Status.Message = &l.Message

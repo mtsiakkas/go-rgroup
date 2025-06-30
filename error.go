@@ -4,7 +4,12 @@ import "fmt"
 
 // Create new HandlerError with code
 func Error(code int) *HandlerError {
-	e := HandlerError{HttpStatus: code}
+	e := HandlerError{
+		HttpStatus: code,
+		err:        nil,
+		LogMessage: "",
+		Response:   "",
+	}
 	return &e
 }
 
