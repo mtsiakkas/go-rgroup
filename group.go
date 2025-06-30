@@ -144,10 +144,9 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 	if f, ok := h.handlers[req.Method]; ok {
 		// apply middleware
 		return f.ApplyMiddleware(h.middleware)(w, req)
-	} else {
-		// if method is not found in group, return MethodNotAllowed error
-		return nil, &HandlerError{HttpStatus: http.StatusMethodNotAllowed}
 	}
+	// if method is not found in group, return MethodNotAllowed error
+	return nil, Error(http.StatusMethodNotAllowed)
 }
 
 // Generate http.HandlerFunc from HandlerGroup
