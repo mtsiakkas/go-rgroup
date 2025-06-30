@@ -9,7 +9,7 @@ import (
 func Response(data any) *HandlerResponse {
 	res := HandlerResponse{
 		Data:       data,
-		HttpStatus: http.StatusOK,
+		HTTPStatus: http.StatusOK,
 		LogMessage: "",
 	}
 
@@ -18,12 +18,12 @@ func Response(data any) *HandlerResponse {
 
 type HandlerResponse struct {
 	Data       any
-	HttpStatus int
+	HTTPStatus int
 	LogMessage string
 }
 
-func (r *HandlerResponse) WithHttpStatus(code int) *HandlerResponse {
-	r.HttpStatus = code
+func (r *HandlerResponse) WithHTTPStatus(code int) *HandlerResponse {
+	r.HTTPStatus = code
 
 	return r
 }
@@ -35,9 +35,9 @@ func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerRespo
 }
 
 type EnvelopeStatus struct {
-	HttpCode int     `json:"http_status"`
-	Message  *string `json:"message,omitempty"`
-	Error    *string `json:"error,omitempty"`
+	HTTPStatus int     `json:"http_status"`
+	Message    *string `json:"message,omitempty"`
+	Error      *string `json:"error,omitempty"`
 }
 
 type Envelope struct {

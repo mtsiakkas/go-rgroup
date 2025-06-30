@@ -21,7 +21,7 @@ func TestHandler(t *testing.T) {
 	t.Run("new with handlers", func(t *testing.T) {
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		}).Make()
 
@@ -50,7 +50,7 @@ func TestHandler(t *testing.T) {
 
 		_ = g.AddHandler(
 			"GET", func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			})
 
 		h := g.Make()
@@ -81,27 +81,27 @@ func TestHandler(t *testing.T) {
 
 		_ = g.Get(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("GET").WithHttpStatus(http.StatusAccepted), nil
+				return rgroup.Response("GET").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Post(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("POST").WithHttpStatus(http.StatusAccepted), nil
+				return rgroup.Response("POST").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Patch(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("PATCH").WithHttpStatus(http.StatusAccepted), nil
+				return rgroup.Response("PATCH").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Put(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("PUT").WithHttpStatus(http.StatusAccepted), nil
+				return rgroup.Response("PUT").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
 		_ = g.Delete(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("DELETE").WithHttpStatus(http.StatusAccepted), nil
+				return rgroup.Response("DELETE").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
 		h := g.Make()
@@ -137,7 +137,7 @@ func TestHandler(t *testing.T) {
 				}{
 					Data: "test",
 				}
-				return rgroup.Response(o).WithHttpStatus(http.StatusCreated), nil
+				return rgroup.Response(o).WithHTTPStatus(http.StatusCreated), nil
 			},
 		}).Make()
 		rr := httptest.NewRecorder()
@@ -167,7 +167,7 @@ func TestHandler(t *testing.T) {
 		b := []byte("test")
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
+				return rgroup.Response(b).WithHTTPStatus(http.StatusCreated), nil
 			},
 		}).Make()
 
@@ -453,10 +453,10 @@ func TestGlobalSettings(t *testing.T) {
 func TestOptions(t *testing.T) {
 	h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 		"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-			return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+			return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 		},
 		"POST": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-			return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+			return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 		},
 	}).Make()
 
@@ -477,7 +477,7 @@ func TestPostprocessor(t *testing.T) {
 	t.Run("print", func(t *testing.T) {
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		}).Make()
 
@@ -500,7 +500,7 @@ func TestPostprocessor(t *testing.T) {
 
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
 
@@ -525,7 +525,7 @@ func TestPostprocessor(t *testing.T) {
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				time.Sleep(1 * time.Second)
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
 
@@ -554,7 +554,7 @@ func TestPostprocessor(t *testing.T) {
 
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response("success").WithHttpStatus(http.StatusAccepted).WithMessage("test message"), nil
+				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})
 
@@ -634,7 +634,7 @@ func TestEnvelope(t *testing.T) {
 	t.Run("envelope response", func(t *testing.T) {
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
+			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated), nil
 		}}).Make()
 
 		rr := httptest.NewRecorder()
@@ -662,7 +662,7 @@ func TestEnvelope(t *testing.T) {
 		rgroup.SetForwardHttpStatus(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-			return rgroup.Response("test").WithHttpStatus(http.StatusCreated), nil
+			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated), nil
 		}}).Make()
 
 		rr := httptest.NewRecorder()
@@ -691,7 +691,7 @@ func TestEnvelope(t *testing.T) {
 		b := []byte("test")
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				return rgroup.Response(b).WithHttpStatus(http.StatusCreated), nil
+				return rgroup.Response(b).WithHTTPStatus(http.StatusCreated), nil
 			},
 		}).Make()
 
@@ -720,7 +720,7 @@ func TestEnvelope(t *testing.T) {
 		rgroup.SetForwardLogMessage(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-			return rgroup.Response("test").WithHttpStatus(http.StatusCreated).WithMessage("test message"), nil
+			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated).WithMessage("test message"), nil
 		}}).Make()
 
 		rr := httptest.NewRecorder()

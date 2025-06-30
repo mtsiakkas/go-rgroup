@@ -26,15 +26,15 @@ func TestResponse(t *testing.T) {
 		t.Fail()
 	}
 
-	if r.HttpStatus != http.StatusOK {
-		t.Logf("unexpected r.HttpStatus value: expected \"%d\" got \"%d\"", http.StatusOK, r.HttpStatus)
+	if r.HTTPStatus != http.StatusOK {
+		t.Logf("unexpected r.HttpStatus value: expected \"%d\" got \"%d\"", http.StatusOK, r.HTTPStatus)
 		t.Fail()
 	}
 
-	r.WithHttpStatus(http.StatusAccepted)
+	r.WithHTTPStatus(http.StatusAccepted)
 
-	if r.HttpStatus != http.StatusAccepted {
-		t.Logf("unexpected r.HttpStatus value: expected \"%d\" got \"%d\"", http.StatusAccepted, r.HttpStatus)
+	if r.HTTPStatus != http.StatusAccepted {
+		t.Logf("unexpected r.HttpStatus value: expected \"%d\" got \"%d\"", http.StatusAccepted, r.HTTPStatus)
 		t.Fail()
 	}
 }

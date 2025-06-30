@@ -201,9 +201,9 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 			if config.EnvelopeResponse {
 				env := Envelope{
 					Status: EnvelopeStatus{
-						Error:    &l.Message,
-						HttpCode: l.Status,
-						Message:  nil,
+						Error:      &l.Message,
+						HTTPStatus: l.Status,
+						Message:    nil,
 					},
 					Data: nil,
 				}
@@ -223,17 +223,17 @@ func (h HandlerGroup) Make() http.HandlerFunc {
 				l.Message = res.LogMessage
 			}
 
-			if http.StatusText(res.HttpStatus) != "" {
-				l.Status = res.HttpStatus
+			if http.StatusText(res.HTTPStatus) != "" {
+				l.Status = res.HTTPStatus
 			}
 
 			if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 				env := Envelope{
 					Data: res.Data,
 					Status: EnvelopeStatus{
-						HttpCode: l.Status,
-						Message:  nil,
-						Error:    nil,
+						HTTPStatus: l.Status,
+						Message:    nil,
+						Error:      nil,
 					},
 				}
 				if config.ForwardLogMessage && l.Message != "" {
