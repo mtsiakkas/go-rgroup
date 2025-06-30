@@ -20,7 +20,7 @@ type HandlerGroup struct {
 
 func (h *HandlerGroup) MethodsAllowed() []string {
 	opts := make([]string, len(h.handlers)+1)
-	opts[0] = "OPTIONS"
+	opts[0] = http.MethodOptions
 
 	i := 1
 	for k := range h.handlers {
@@ -132,7 +132,7 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 }
 
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
-	if req.Method == "OPTIONS" {
+	if req.Method == http.MethodOptions {
 		// check if custom options handler was provided
 		if f, ok := h.handlers[req.Method]; ok && GetOnOptionsHandler() == OptionsHandlerOverwrite {
 			return f.ApplyMiddleware(h.middleware)(w, req)
