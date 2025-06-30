@@ -29,6 +29,10 @@ func defaultPrint(ctx context.Context, r *RequestData) {
 	printFunc(r.String())
 }
 
+type WriteError struct {
+	error
+}
+
 func write(w http.ResponseWriter, d any) (int, error) {
 	if d == nil {
 		return 0, nil
@@ -44,9 +48,14 @@ func write(w http.ResponseWriter, d any) (int, error) {
 	default:
 		dj, err := json.Marshal(d)
 		if err != nil {
-			return 0, err
+			return 0, WriteError{err}
 		}
 
-		return w.Write(dj)
+		n, err := w.Write(dj)
+		if err != nil {
+			return 0, WriteError{err}
+		}
+
+		return n, nil
 	}
 }

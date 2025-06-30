@@ -57,11 +57,19 @@ func (d DuplicateMethodBehaviour) String() string {
 	return duplicateMethodOpts[d]
 }
 
+type DuplicateMethodUknownOptionError struct {
+	option DuplicateMethodBehaviour
+}
+
+func (e DuplicateMethodUknownOptionError) Error() string {
+	return fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", e.option)
+}
+
 // Set duplicate method behaviour
 // returns error if unknown option is passed
 func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	if !o.Validate() {
-		return fmt.Errorf("unknown option %s", o)
+		return DuplicateMethodUknownOptionError{option: o}
 	}
 
 	config.DuplicateMethod = o
@@ -100,10 +108,18 @@ func (o OptionsHandlerBehaviour) Validate() bool {
 	return ok
 }
 
+type OptionsHandlerUknownOptionError struct {
+	option OptionsHandlerBehaviour
+}
+
+func (e OptionsHandlerUknownOptionError) Error() string {
+	return fmt.Sprintf("unknown OptionsHandlerBehaviour option %d", e.option)
+}
+
 // Set options method overwrite setting
 func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	if !o.Validate() {
-		return fmt.Errorf("unknown option %d", o)
+		return OptionsHandlerUknownOptionError{option: o}
 	}
 
 	config.OptionsHandler = o

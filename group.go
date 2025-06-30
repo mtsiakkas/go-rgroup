@@ -69,6 +69,14 @@ func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
 	h.postprocessor = p
 }
 
+type DuplicateMethodExistsError struct {
+	method string
+}
+
+func (e DuplicateMethodExistsError) Error() string {
+	return e.method + " handler already set"
+}
+
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
@@ -86,7 +94,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 		case DuplicateMethodOverwrite:
 			fmt.Print("overwriting OPTIONS handler")
 		case DuplicateMethodError:
-			return fmt.Errorf("handler for %s already set", m)
+			return DuplicateMethodExistsError{method: m}
 		default:
 			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", GetDuplicateMethod()))
 		}
