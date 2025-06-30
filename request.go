@@ -19,21 +19,25 @@ type RequestData struct {
 }
 
 func FromRequest(req *http.Request) *RequestData {
-	l := RequestData{
-		Path:    strings.Split(req.RequestURI, "?")[0],
-		Status:  http.StatusOK,
-		Ts:      time.Now().UnixNano(),
-		Request: req,
+	r := RequestData{
+		Path:         strings.Split(req.RequestURI, "?")[0],
+		Status:       http.StatusOK,
+		Ts:           time.Now().UnixNano(),
+		Request:      req,
+		Duration:     0,
+		Message:      "",
+		IsError:      false,
+		ResponseSize: 0,
 	}
 
-	return &l
+	return &r
 }
 
-func (l *RequestData) Time() int64 {
-	if l.Duration == 0 {
-		l.Duration = time.Now().UnixNano() - l.Ts
+func (r *RequestData) Time() int64 {
+	if r.Duration == 0 {
+		r.Duration = time.Now().UnixNano() - r.Ts
 	}
-	return l.Duration
+	return r.Duration
 }
 
 func (r *RequestData) String() string {
