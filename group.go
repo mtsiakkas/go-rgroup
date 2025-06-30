@@ -167,7 +167,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		if g != nil {
 			h.postprocessor = g
 		} else {
-			h.postprocessor = print
+			h.postprocessor = defaultPrint
 		}
 	}
 
