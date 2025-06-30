@@ -33,7 +33,7 @@ func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError 
 	return e
 }
 
-func (e HandlerError) Error() string {
+func (e *HandlerError) Error() string {
 	if e.err != nil {
 		return fmt.Sprintf("%s: %s", e.LogMessage, e.err)
 	}
