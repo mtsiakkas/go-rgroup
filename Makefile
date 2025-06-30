@@ -10,6 +10,13 @@ endif
 test.report: test
 	@go tool cover -html=c.out
 
+lint:
+ifeq (, $(shell which golangci-lint 2>/dev/null))
+	@echo "golangci-lint not installed"
+else
+	golangci-lint run
+endif
+
 TARGET?=patch
 tag:
 ifeq (, $(shell which git-semver 2>/dev/null))
