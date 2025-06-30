@@ -15,7 +15,7 @@ type GlobalConfig struct {
 	RequestPostProcessor func(context.Context, *RequestData)
 }
 
-var config GlobalConfig = GlobalConfig{
+var config = GlobalConfig{
 	PostprocessOptions: true,
 }
 
