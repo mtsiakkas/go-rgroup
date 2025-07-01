@@ -3,6 +3,10 @@ version: "2"
 linters:
   default: all
 
+  exclusions:
+    paths:
+      - examples
+
   disable:
     - wsl
     - varnamelen
@@ -33,6 +37,7 @@ linters:
             - "disable-checks-on-methods"
             - "disable-checks-on-types"
             - "disable-checks-on-variables"
+
 run:
   timeout: 5m
   tests: false
