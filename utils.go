@@ -1,3 +1,4 @@
+// Package rgroup - A handler groupper for go
 package rgroup
 
 import (
