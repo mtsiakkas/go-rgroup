@@ -19,31 +19,25 @@ type GlobalConfig struct {
 
 var mtx = sync.RWMutex{}
 
-// Config is a global instance of GlobalConfig and holds the global configuration for the package
-var Config = GlobalConfig{
+var defaultConfig = GlobalConfig{
 	postprocessOptions:               true,
-	overwriteMethodBehaviour:         0,
-	overwriteOptionsHandlerBehaviour: 0,
+	overwriteMethodBehaviour:         OverwriteMethodPanic,
+	overwriteOptionsHandlerBehaviour: OverwriteOptionsHandlerPanic,
 	envelopeResponse:                 false,
 	forwardHTTPStatus:                false,
 	forwardLogMessage:                false,
 	requestPostProcessor:             nil,
 }
 
+// Config is a global instance of GlobalConfig and holds the global configuration for the package
+var Config = defaultConfig
+
 // Reset the global config to the default values
 func (c *GlobalConfig) Reset() *GlobalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	*c = GlobalConfig{
-		postprocessOptions:               true,
-		overwriteMethodBehaviour:         0,
-		overwriteOptionsHandlerBehaviour: 0,
-		envelopeResponse:                 false,
-		forwardHTTPStatus:                false,
-		forwardLogMessage:                false,
-		requestPostProcessor:             nil,
-	}
+	*c = defaultConfig
 
 	return c
 }
