@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// GlobalConfig defines all global configuration options
 type GlobalConfig struct {
 	DuplicateMethod      DuplicateMethodBehaviour
 	OptionsHandler       OptionsHandlerBehaviour
@@ -25,15 +26,22 @@ var config = GlobalConfig{
 	RequestPostProcessor: nil,
 }
 
+// SetGlobalConfig - Self explanatory
 func SetGlobalConfig(cfg GlobalConfig) {
 	config = cfg
 }
 
-// DuplicateMethodBehaviour defines what should happen if the handler for a method is reassigned
+// DuplicateMethodBehaviour defines what should happen if the Handler for a method is reassigned
 type DuplicateMethodBehaviour int
 
+/*
+DuplicateMethodPanic - panic (default).
+DuplicateMethodError - return error.
+DuplicateMethodOverwrite - replace existing Handler.
+DuplicateMethodIgnore - ignore new Handler keeping old.
+*/
 const (
-	DuplicateMethodPanic DuplicateMethodBehaviour = iota // default
+	DuplicateMethodPanic DuplicateMethodBehaviour = iota
 	DuplicateMethodIgnore
 	DuplicateMethodOverwrite
 	DuplicateMethodError
@@ -46,6 +54,7 @@ var duplicateMethodOpts = map[DuplicateMethodBehaviour]string{
 	DuplicateMethodError:     "error",
 }
 
+// Validate - ensure d is a valid DuplicateMethodBehaviour option
 func (d DuplicateMethodBehaviour) Validate() bool {
 	_, ok := duplicateMethodOpts[d]
 
@@ -57,6 +66,7 @@ func (d DuplicateMethodBehaviour) String() string {
 	return duplicateMethodOpts[d]
 }
 
+// DuplicateMethodUknownOptionError - simple error struct returned by OnDuplicateMethod when passed option is invalid
 type DuplicateMethodUknownOptionError struct {
 	option DuplicateMethodBehaviour
 }
@@ -65,8 +75,8 @@ func (e DuplicateMethodUknownOptionError) Error() string {
 	return fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", e.option)
 }
 
-// Set duplicate method behaviour
-// returns error if unknown option is passed
+// OnDuplicateMethod - defines duplicate method behaviour
+// returns DuplicateMethodUknownOptionError error if invalid option is passed.
 func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	if !o.Validate() {
 		return DuplicateMethodUknownOptionError{option: o}
@@ -77,7 +87,7 @@ func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	return nil
 }
 
-// Return current duplicate method setting
+// GetDuplicateMethod - return current duplicate method setting
 func GetDuplicateMethod() DuplicateMethodBehaviour {
 	return config.DuplicateMethod
 }
@@ -85,6 +95,11 @@ func GetDuplicateMethod() DuplicateMethodBehaviour {
 // OptionsHandlerBehaviour defines what should happen if the OPTIONS handler is manually set
 type OptionsHandlerBehaviour int
 
+/*
+OptionsHandlerPanic - panic (default).
+OptionsHandlerIgnore - ignore new Handler keeping old.
+OptionsHandlerOverwrite - replace default handler.
+*/
 const (
 	OptionsHandlerPanic OptionsHandlerBehaviour = iota // default
 	OptionsHandlerIgnore
@@ -102,12 +117,14 @@ func (o OptionsHandlerBehaviour) String() string {
 	return optsOpts[o]
 }
 
+// Validate - ensure d is a valid OptionsHandlerBehaviour option
 func (o OptionsHandlerBehaviour) Validate() bool {
 	_, ok := optsOpts[o]
 
 	return ok
 }
 
+// OptionsHandlerUknownOptionError - simple error struct returned by OnOptionsHandler when passed option is invalid
 type OptionsHandlerUknownOptionError struct {
 	option OptionsHandlerBehaviour
 }
@@ -116,7 +133,7 @@ func (e OptionsHandlerUknownOptionError) Error() string {
 	return fmt.Sprintf("unknown OptionsHandlerBehaviour option %d", e.option)
 }
 
-// Set options method overwrite setting
+// OnOptionsHandler - set options method overwrite setting
 func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	if !o.Validate() {
 		return OptionsHandlerUknownOptionError{option: o}
@@ -127,33 +144,37 @@ func OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	return nil
 }
 
-// Return the current options method overwrite behaviour
+// GetOnOptionsHandler - return the current options method overwrite behaviour
 func GetOnOptionsHandler() OptionsHandlerBehaviour {
 	return config.OptionsHandler
 }
 
-// Set global request post processor
+// SetGlobalPostprocessor - set global request post processor
 func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
 	config.RequestPostProcessor = p
 }
 
-// Get global request post processor
+// GetGlobalPostprocessor - get global request post processor
 func GetGlobalPostprocessor() func(context.Context, *RequestData) {
 	return config.RequestPostProcessor
 }
 
+// SetPostprocessOptions - self explanaroty
 func SetPostprocessOptions(b bool) {
 	config.PostprocessOptions = b
 }
 
+// SetForwardLogMessage - self explanatory
 func SetForwardLogMessage(b bool) {
 	config.ForwardLogMessage = b
 }
 
+// SetForwardHttpStatus - self explanatory
 func SetForwardHttpStatus(b bool) {
 	config.ForwardHttpStatus = b
 }
 
+// SetEnvelopeResponse - self explanatory
 func SetEnvelopeResponse(b bool) {
 	config.EnvelopeResponse = b
 }

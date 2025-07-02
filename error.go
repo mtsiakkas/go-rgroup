@@ -1,8 +1,10 @@
 package rgroup
 
-import "fmt"
+import (
+	"fmt"
+)
 
-// Create new HandlerError with code
+// Error - Create new HandlerError with code
 func Error(code int) *HandlerError {
 	e := HandlerError{
 		HTTPStatus: code,
@@ -14,6 +16,7 @@ func Error(code int) *HandlerError {
 	return &e
 }
 
+// HandlerError - error struct that can be used to return additional info on Handler error
 type HandlerError struct {
 	err        error
 	LogMessage string
@@ -21,12 +24,14 @@ type HandlerError struct {
 	HTTPStatus int
 }
 
+// WithMessage - add log message
 func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 	e.LogMessage = fmt.Sprintf(message, args...)
 
 	return e
 }
 
+// WithResponse - add response to be send to the client
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
 
@@ -41,6 +46,7 @@ func (e *HandlerError) Error() string {
 	return e.LogMessage
 }
 
+// Wrap - wrap error
 func (e *HandlerError) Wrap(err error) *HandlerError {
 	e.err = err
 

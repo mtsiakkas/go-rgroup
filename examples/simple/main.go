@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	// Define handler goup
 	g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 		http.MethodGet:  handleGet,
@@ -30,7 +29,6 @@ func main() {
 	if err := http.ListenAndServe("localhost:3000", r); err != nil {
 		log.Fatalf("failed to start server: %s", err)
 	}
-
 }
 
 // rgroup.Handler for GET

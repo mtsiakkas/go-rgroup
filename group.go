@@ -9,15 +9,24 @@ import (
 	"strings"
 )
 
+// Handler function signuture
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
+
+// Middleware function signature
 type Middleware func(Handler) Handler
+
+// HandlerMap is a wrapper around map[string]Handler
+// Used to simplify HandlerGroup initialization
 type HandlerMap map[string]Handler
+
+// HandlerGroup is a structure that contains all Handlers, Middleware and request postprocessor for a route
 type HandlerGroup struct {
 	handlers      HandlerMap
 	postprocessor func(context.Context, *RequestData)
 	middleware    []Middleware
 }
 
+// MethodsAllowed returns a string slice with all http verbs handled by the group
 func (h *HandlerGroup) MethodsAllowed() []string {
 	opts := make([]string, len(h.handlers)+1)
 	opts[0] = http.MethodOptions
@@ -31,7 +40,7 @@ func (h *HandlerGroup) MethodsAllowed() []string {
 	return opts
 }
 
-// Create new empty handler group
+// New creates a new empty handler group
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
 	h.handlers = make(HandlerMap)
@@ -39,7 +48,7 @@ func New() *HandlerGroup {
 	return h
 }
 
-// Create a new handler group for handler map.
+// NewWithHandlers creates a new HandlerGroup from a HandlerMap
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	if _, ok := handlers[http.MethodOptions]; ok {
@@ -65,10 +74,14 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 
 	return h
 }
+
+// SetPostprocessor assigns a local postprocessor function to the HandlerGroup
 func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
 	h.postprocessor = p
 }
 
+// DuplicateMethodExistsError is a simple error struct indicating that a handler for the
+// specified method already exists in the HandlerGroup
 type DuplicateMethodExistsError struct {
 	method string
 }
@@ -77,6 +90,8 @@ func (e DuplicateMethodExistsError) Error() string {
 	return e.method + " handler already set"
 }
 
+// AddHandler adds a new Handler to the HandlerGroup.
+// In case `method` already exists, behaviour is defined by the global config.DuplicateMethod option
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
@@ -105,22 +120,27 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	return nil
 }
 
+// Post - utility function to add POST Handler to HandlerGroup
 func (h *HandlerGroup) Post(handler Handler) error {
 	return h.AddHandler("POST", handler)
 }
 
+// Put - utility function to add PUT Handler to HandlerGroup
 func (h *HandlerGroup) Put(handler Handler) error {
 	return h.AddHandler("PUT", handler)
 }
 
+// Patch - utility function to add PATCH Handler to HandlerGroup
 func (h *HandlerGroup) Patch(handler Handler) error {
 	return h.AddHandler("PATCH", handler)
 }
 
+// Delete - utility function to add DELETE Handler to HandlerGroup
 func (h *HandlerGroup) Delete(handler Handler) error {
 	return h.AddHandler("DELETE", handler)
 }
 
+// Get - utility function to add GET Handler to HandlerGroup
 func (h *HandlerGroup) Get(handler Handler) error {
 	return h.AddHandler("GET", handler)
 }
@@ -134,6 +154,7 @@ func (h Handler) ApplyMiddleware(middleware []Middleware) Handler {
 	return f
 }
 
+// AddMiddleware appends the given Middleware to the HandlerGroup
 func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 	if h.middleware == nil {
 		h.middleware = make([]Middleware, 0)
@@ -162,7 +183,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 	return nil, Error(http.StatusMethodNotAllowed)
 }
 
-// Generate http.HandlerFunc from HandlerGroup
+// Make generates an http.HandlerFunc from the HandlerGroup
 func (h *HandlerGroup) Make() http.HandlerFunc {
 	if len(h.handlers) == 0 {
 		return func(w http.ResponseWriter, req *http.Request) {}
