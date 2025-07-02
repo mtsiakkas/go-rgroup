@@ -52,7 +52,7 @@ func New() *HandlerGroup {
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	if _, ok := handlers[http.MethodOptions]; ok {
-		switch GetOnOptionsHandler() {
+		switch Config.optionsHandler {
 		case OptionsHandlerPanic:
 			panic("cannot overwrite options handler")
 		case OptionsHandlerOverwrite:
@@ -61,7 +61,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 			delete(handlers, http.MethodOptions)
 			fmt.Print("ignoring OPTIONS handler")
 		default:
-			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", GetOnOptionsHandler()))
+			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", Config.optionsHandler))
 		}
 	}
 
@@ -99,7 +99,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 
 	m := strings.ToUpper(method)
 	if _, ok := h.handlers[m]; ok {
-		switch GetDuplicateMethod() {
+		switch Config.duplicateMethod {
 		case DuplicateMethodPanic:
 			panic("cannot overwrite options handler")
 		case DuplicateMethodIgnore:
@@ -111,7 +111,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 		case DuplicateMethodError:
 			return DuplicateMethodExistsError{method: m}
 		default:
-			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", GetDuplicateMethod()))
+			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", Config.duplicateMethod))
 		}
 	}
 
@@ -167,7 +167,7 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == http.MethodOptions {
 		// check if custom options handler was provided
-		if f, ok := h.handlers[req.Method]; ok && GetOnOptionsHandler() == OptionsHandlerOverwrite {
+		if f, ok := h.handlers[req.Method]; ok && Config.GetOnOptionsHandler() == OptionsHandlerOverwrite {
 			return f.applyMiddleware(h.middleware)(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
@@ -192,7 +192,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	// set handler request postprocessor
 	// local > global > default
 	if h.postprocessor == nil {
-		g := GetGlobalPostprocessor()
+		g := Config.GetGlobalPostprocessor()
 		if g != nil {
 			h.postprocessor = g
 		} else {
@@ -209,7 +209,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 		defer func() {
 			if req.Method == http.MethodOptions {
-				if config.PostprocessOptions {
+				if Config.postprocessOptions {
 					h.postprocessor(ctx, l)
 				}
 			} else {
@@ -229,7 +229,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 			l.Status = me.HTTPStatus
 
-			if config.EnvelopeResponse {
+			if Config.envelopeResponse {
 				env := me.ToEnvelope()
 				l.ResponseSize, _ = write(w, env)
 
@@ -251,10 +251,10 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			l.Status = res.HTTPStatus
 		}
 
-		if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
+		if Config.envelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 			env := res.ToEnvelope()
 
-			if config.ForwardHTTPStatus && (l.Status != http.StatusOK) {
+			if Config.forwardHTTPStatus && (l.Status != http.StatusOK) {
 				w.WriteHeader(l.Status)
 			}
 			l.ResponseSize, _ = write(w, env)

@@ -276,7 +276,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("overwrite", func(t *testing.T) {
 
-			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerOverwrite); err != nil {
+			if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerOverwrite); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -306,7 +306,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("ignore", func(t *testing.T) {
 
-			if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+			if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -341,7 +341,7 @@ func TestGlobalSettings(t *testing.T) {
 	})
 
 	t.Run("duplicate handler", func(t *testing.T) {
-		if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodPanic); err != nil {
+		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodPanic); err != nil {
 			t.Log(err)
 			t.Fail()
 		}
@@ -364,7 +364,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("error", func(t *testing.T) {
-			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -385,7 +385,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("ignore", func(t *testing.T) {
-			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodIgnore); err != nil {
+			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -417,7 +417,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("overwrite", func(t *testing.T) {
-			if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite); err != nil {
+			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -496,7 +496,7 @@ func TestPostprocessor(t *testing.T) {
 		print := func(ctx context.Context, r *rgroup.RequestData) {
 			fmt.Println("global")
 		}
-		rgroup.SetGlobalPostprocessor(print)
+		rgroup.Config.SetGlobalPostprocessor(print)
 
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
@@ -630,7 +630,7 @@ func TestMiddleware(t *testing.T) {
 }
 
 func TestEnvelope(t *testing.T) {
-	rgroup.SetEnvelopeResponse(true)
+	rgroup.Config.SetEnvelopeResponse(true)
 	t.Run("envelope response", func(t *testing.T) {
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
@@ -659,7 +659,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("forward status code", func(t *testing.T) {
-		rgroup.SetForwardHTTPStatus(true)
+		rgroup.Config.SetForwardHTTPStatus(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated), nil
@@ -717,7 +717,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("forward message", func(t *testing.T) {
-		rgroup.SetForwardLogMessage(true)
+		rgroup.Config.SetForwardLogMessage(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated).WithMessage("test message"), nil
@@ -745,9 +745,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("error", func(t *testing.T) {
-		rgroup.SetGlobalConfig(rgroup.GlobalConfig{
-			EnvelopeResponse: true,
-		})
+		rgroup.Config.SetEnvelopeResponse(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return nil, rgroup.Error(http.StatusForbidden).WithMessage("test error")
@@ -774,5 +772,5 @@ func TestEnvelope(t *testing.T) {
 		}
 	})
 
-	rgroup.SetGlobalConfig(rgroup.GlobalConfig{})
+	rgroup.Config.Reset()
 }

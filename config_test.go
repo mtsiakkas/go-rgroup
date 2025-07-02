@@ -12,14 +12,14 @@ import (
 
 func TestGlobalDuplicateHandler(t *testing.T) {
 	t.Run("set - unknown option", func(t *testing.T) {
-		if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodBehaviour(4)); err == nil {
+		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodBehaviour(4)); err == nil {
 			t.Log("expected error")
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
@@ -40,27 +40,27 @@ func TestGlobalDuplicateHandler(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.GetDuplicateMethod() != rgroup.DuplicateMethodError {
-			t.Logf("got %s", rgroup.GetDuplicateMethod())
+		if rgroup.Config.GetDuplicateMethod() != rgroup.DuplicateMethodError {
+			t.Logf("got %s", rgroup.Config.GetDuplicateMethod())
 			t.Fail()
 		}
 	})
 
-	_ = rgroup.OnDuplicateMethod(rgroup.DuplicateMethodPanic)
+	_ = rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodPanic)
 
 }
 
 func TestGlobalOptionsHandler(t *testing.T) {
 
 	t.Run("options - unknown option", func(t *testing.T) {
-		if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerBehaviour(4)); err == nil {
+		if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerBehaviour(4)); err == nil {
 			t.Log("expected error", err)
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+		if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
@@ -81,16 +81,16 @@ func TestGlobalOptionsHandler(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.GetOnOptionsHandler() != rgroup.OptionsHandlerIgnore {
+		if rgroup.Config.GetOnOptionsHandler() != rgroup.OptionsHandlerIgnore {
 			t.Fail()
 		}
 	})
 
-	_ = rgroup.OnOptionsHandler(rgroup.OptionsHandlerPanic)
+	_ = rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerPanic)
 }
 
 func TestGlobalPostprocessor(t *testing.T) {
-	rgroup.SetGlobalPostprocessor(func(ctx context.Context, req *rgroup.RequestData) {
+	rgroup.Config.SetGlobalPostprocessor(func(ctx context.Context, req *rgroup.RequestData) {
 		fmt.Println("global postprocessor")
 	})
 
@@ -106,11 +106,11 @@ func TestGlobalPostprocessor(t *testing.T) {
 		t.Fail()
 	}
 
-	p := rgroup.GetGlobalPostprocessor()
+	p := rgroup.Config.GetGlobalPostprocessor()
 	if p == nil {
 		t.Log("expected not nil global postprocessor")
 		t.Fail()
 	}
 
-	rgroup.SetGlobalPostprocessor(nil)
+	rgroup.Config.SetGlobalPostprocessor(nil)
 }

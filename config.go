@@ -7,28 +7,39 @@ import (
 
 // GlobalConfig defines all global configuration options
 type GlobalConfig struct {
-	DuplicateMethod      DuplicateMethodBehaviour
-	OptionsHandler       OptionsHandlerBehaviour
-	PostprocessOptions   bool
-	EnvelopeResponse     bool
-	ForwardHTTPStatus    bool
-	ForwardLogMessage    bool
-	RequestPostProcessor func(context.Context, *RequestData)
+	duplicateMethod      DuplicateMethodBehaviour
+	optionsHandler       OptionsHandlerBehaviour
+	postprocessOptions   bool
+	envelopeResponse     bool
+	forwardHTTPStatus    bool
+	forwardLogMessage    bool
+	requestPostProcessor func(context.Context, *RequestData)
 }
 
-var config = GlobalConfig{
-	PostprocessOptions:   true,
-	DuplicateMethod:      0,
-	OptionsHandler:       0,
-	EnvelopeResponse:     false,
-	ForwardHTTPStatus:    false,
-	ForwardLogMessage:    false,
-	RequestPostProcessor: nil,
+// Config is a global instance of GlobalConfig and holds the global configuration for the package
+var Config = GlobalConfig{
+	postprocessOptions:   true,
+	duplicateMethod:      0,
+	optionsHandler:       0,
+	envelopeResponse:     false,
+	forwardHTTPStatus:    false,
+	forwardLogMessage:    false,
+	requestPostProcessor: nil,
 }
 
-// SetGlobalConfig - Self explanatory
-func SetGlobalConfig(cfg GlobalConfig) {
-	config = cfg
+// Reset the global config to the default values
+func (c *GlobalConfig) Reset() *GlobalConfig {
+	*c = GlobalConfig{
+		postprocessOptions:   true,
+		duplicateMethod:      0,
+		optionsHandler:       0,
+		envelopeResponse:     false,
+		forwardHTTPStatus:    false,
+		forwardLogMessage:    false,
+		requestPostProcessor: nil,
+	}
+
+	return c
 }
 
 // DuplicateMethodBehaviour defines what should happen if the Handler for a method is reassigned
@@ -77,19 +88,19 @@ func (e DuplicateMethodUknownOptionError) Error() string {
 
 // OnDuplicateMethod - defines duplicate method behaviour
 // returns DuplicateMethodUknownOptionError error if invalid option is passed.
-func OnDuplicateMethod(o DuplicateMethodBehaviour) error {
+func (c *GlobalConfig) OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 	if !o.Validate() {
 		return DuplicateMethodUknownOptionError{option: o}
 	}
 
-	config.DuplicateMethod = o
+	c.duplicateMethod = o
 
 	return nil
 }
 
 // GetDuplicateMethod - return current duplicate method setting
-func GetDuplicateMethod() DuplicateMethodBehaviour {
-	return config.DuplicateMethod
+func (c *GlobalConfig) GetDuplicateMethod() DuplicateMethodBehaviour {
+	return c.duplicateMethod
 }
 
 // OptionsHandlerBehaviour defines what should happen if the OPTIONS handler is manually set
@@ -134,47 +145,57 @@ func (e OptionsHandlerUknownOptionError) Error() string {
 }
 
 // OnOptionsHandler - set options method overwrite setting
-func OnOptionsHandler(o OptionsHandlerBehaviour) error {
+func (c *GlobalConfig) OnOptionsHandler(o OptionsHandlerBehaviour) error {
 	if !o.Validate() {
 		return OptionsHandlerUknownOptionError{option: o}
 	}
 
-	config.OptionsHandler = o
+	c.optionsHandler = o
 
 	return nil
 }
 
 // GetOnOptionsHandler - return the current options method overwrite behaviour
-func GetOnOptionsHandler() OptionsHandlerBehaviour {
-	return config.OptionsHandler
+func (c *GlobalConfig) GetOnOptionsHandler() OptionsHandlerBehaviour {
+	return c.optionsHandler
 }
 
 // SetGlobalPostprocessor - set global request post processor
-func SetGlobalPostprocessor(p func(context.Context, *RequestData)) {
-	config.RequestPostProcessor = p
+func (c *GlobalConfig) SetGlobalPostprocessor(p func(context.Context, *RequestData)) *GlobalConfig {
+	c.requestPostProcessor = p
+
+	return c
 }
 
 // GetGlobalPostprocessor - get global request post processor
-func GetGlobalPostprocessor() func(context.Context, *RequestData) {
-	return config.RequestPostProcessor
+func (c *GlobalConfig) GetGlobalPostprocessor() func(context.Context, *RequestData) {
+	return c.requestPostProcessor
 }
 
 // SetPostprocessOptions - self explanaroty
-func SetPostprocessOptions(b bool) {
-	config.PostprocessOptions = b
+func (c *GlobalConfig) SetPostprocessOptions(b bool) *GlobalConfig {
+	c.postprocessOptions = b
+
+	return c
 }
 
 // SetForwardLogMessage - self explanatory
-func SetForwardLogMessage(b bool) {
-	config.ForwardLogMessage = b
+func (c *GlobalConfig) SetForwardLogMessage(b bool) *GlobalConfig {
+	c.forwardLogMessage = b
+
+	return c
 }
 
 // SetForwardHTTPStatus - self explanatory
-func SetForwardHTTPStatus(b bool) {
-	config.ForwardHTTPStatus = b
+func (c *GlobalConfig) SetForwardHTTPStatus(b bool) *GlobalConfig {
+	c.forwardHTTPStatus = b
+
+	return c
 }
 
 // SetEnvelopeResponse - self explanatory
-func SetEnvelopeResponse(b bool) {
-	config.EnvelopeResponse = b
+func (c *GlobalConfig) SetEnvelopeResponse(b bool) *GlobalConfig {
+	c.envelopeResponse = b
+
+	return c
 }
