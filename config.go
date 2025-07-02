@@ -3,6 +3,7 @@ package rgroup
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 // GlobalConfig defines all global configuration options
@@ -15,6 +16,8 @@ type GlobalConfig struct {
 	forwardLogMessage    bool
 	requestPostProcessor func(context.Context, *RequestData)
 }
+
+var mtx = sync.RWMutex{}
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
 var Config = GlobalConfig{
@@ -29,6 +32,9 @@ var Config = GlobalConfig{
 
 // Reset the global config to the default values
 func (c *GlobalConfig) Reset() *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	*c = GlobalConfig{
 		postprocessOptions:   true,
 		duplicateMethod:      0,
@@ -89,6 +95,9 @@ func (e DuplicateMethodUknownOptionError) Error() string {
 // OnDuplicateMethod - defines duplicate method behaviour
 // returns DuplicateMethodUknownOptionError error if invalid option is passed.
 func (c *GlobalConfig) OnDuplicateMethod(o DuplicateMethodBehaviour) error {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	if !o.Validate() {
 		return DuplicateMethodUknownOptionError{option: o}
 	}
@@ -100,6 +109,9 @@ func (c *GlobalConfig) OnDuplicateMethod(o DuplicateMethodBehaviour) error {
 
 // GetDuplicateMethod - return current duplicate method setting
 func (c *GlobalConfig) GetDuplicateMethod() DuplicateMethodBehaviour {
+	mtx.RLock()
+	defer mtx.RUnlock()
+
 	return c.duplicateMethod
 }
 
@@ -146,6 +158,9 @@ func (e OptionsHandlerUknownOptionError) Error() string {
 
 // OnOptionsHandler - set options method overwrite setting
 func (c *GlobalConfig) OnOptionsHandler(o OptionsHandlerBehaviour) error {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	if !o.Validate() {
 		return OptionsHandlerUknownOptionError{option: o}
 	}
@@ -157,11 +172,17 @@ func (c *GlobalConfig) OnOptionsHandler(o OptionsHandlerBehaviour) error {
 
 // GetOnOptionsHandler - return the current options method overwrite behaviour
 func (c *GlobalConfig) GetOnOptionsHandler() OptionsHandlerBehaviour {
+	mtx.RLock()
+	defer mtx.RUnlock()
+
 	return c.optionsHandler
 }
 
 // SetGlobalPostprocessor - set global request post processor
 func (c *GlobalConfig) SetGlobalPostprocessor(p func(context.Context, *RequestData)) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	c.requestPostProcessor = p
 
 	return c
@@ -169,11 +190,17 @@ func (c *GlobalConfig) SetGlobalPostprocessor(p func(context.Context, *RequestDa
 
 // GetGlobalPostprocessor - get global request post processor
 func (c *GlobalConfig) GetGlobalPostprocessor() func(context.Context, *RequestData) {
+	mtx.RLock()
+	defer mtx.RUnlock()
+
 	return c.requestPostProcessor
 }
 
 // SetPostprocessOptions - self explanaroty
 func (c *GlobalConfig) SetPostprocessOptions(b bool) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	c.postprocessOptions = b
 
 	return c
@@ -181,6 +208,9 @@ func (c *GlobalConfig) SetPostprocessOptions(b bool) *GlobalConfig {
 
 // SetForwardLogMessage - self explanatory
 func (c *GlobalConfig) SetForwardLogMessage(b bool) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	c.forwardLogMessage = b
 
 	return c
@@ -188,6 +218,9 @@ func (c *GlobalConfig) SetForwardLogMessage(b bool) *GlobalConfig {
 
 // SetForwardHTTPStatus - self explanatory
 func (c *GlobalConfig) SetForwardHTTPStatus(b bool) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	c.forwardHTTPStatus = b
 
 	return c
@@ -195,6 +228,9 @@ func (c *GlobalConfig) SetForwardHTTPStatus(b bool) *GlobalConfig {
 
 // SetEnvelopeResponse - self explanatory
 func (c *GlobalConfig) SetEnvelopeResponse(b bool) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	c.envelopeResponse = b
 
 	return c
