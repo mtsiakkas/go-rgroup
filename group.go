@@ -222,20 +222,15 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			l.Message = err.Error()
 
 			me := new(HandlerError)
-			if errors.As(err, &me) {
-				l.Status = me.HTTPStatus
-			} else {
-				l.Status = http.StatusInternalServerError
+			if !errors.As(err, &me) {
+				me.HTTPStatus = http.StatusInternalServerError
+				_ = me.Wrap(err)
 			}
+
+			l.Status = me.HTTPStatus
+
 			if config.EnvelopeResponse {
-				env := Envelope{
-					Status: EnvelopeStatus{
-						Error:      &l.Message,
-						HTTPStatus: l.Status,
-						Message:    nil,
-					},
-					Data: nil,
-				}
+				env := me.ToEnvelope()
 				l.ResponseSize, _ = write(w, env)
 
 				return
@@ -246,42 +241,30 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			return
 		}
 
-		if res != nil {
-			if res.LogMessage != "" {
-				l.Message = res.LogMessage
-			}
+		if res == nil {
+			return
+		}
 
-			if http.StatusText(res.HTTPStatus) != "" {
-				l.Status = res.HTTPStatus
-			}
+		l.Message = res.LogMessage
 
-			if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
-				env := Envelope{
-					Data: res.Data,
-					Status: EnvelopeStatus{
-						HTTPStatus: l.Status,
-						Message:    nil,
-						Error:      nil,
-					},
-				}
-				if config.ForwardLogMessage && l.Message != "" {
-					env.Status.Message = &l.Message
-				}
+		if http.StatusText(res.HTTPStatus) != "" {
+			l.Status = res.HTTPStatus
+		}
 
-				if config.ForwardHttpStatus {
-					if l.Status != http.StatusOK {
-						w.WriteHeader(l.Status)
-					}
-				}
-				l.ResponseSize, _ = write(w, env)
+		if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
+			env := res.ToEnvelope()
 
-				return
-			}
-
-			if l.Status != http.StatusOK {
+			if config.ForwardHttpStatus && (l.Status != http.StatusOK) {
 				w.WriteHeader(l.Status)
 			}
-			l.ResponseSize, _ = write(w, res.Data)
+			l.ResponseSize, _ = write(w, env)
+
+			return
 		}
+
+		if l.Status != http.StatusOK {
+			w.WriteHeader(l.Status)
+		}
+		l.ResponseSize, _ = write(w, res.Data)
 	}
 }

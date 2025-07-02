@@ -59,3 +59,7 @@ func write(w http.ResponseWriter, d any) (int, error) {
 		return n, nil
 	}
 }
+
+func toPtr[T any](t T) *T {
+	return &t
+}

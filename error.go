@@ -56,3 +56,22 @@ func (e *HandlerError) Wrap(err error) *HandlerError {
 func (e *HandlerError) Unwrap() error {
 	return e.err
 }
+
+// ToEnvelope - create Envelope from error.
+// Used when config.EnvelopeResponse is set.
+func (e *HandlerError) ToEnvelope() *Envelope {
+	env := Envelope{
+		Data: nil,
+		Status: EnvelopeStatus{
+			HTTPStatus: e.HTTPStatus,
+			Message:    nil,
+			Error:      toPtr(e.Error()),
+		},
+	}
+
+	if config.ForwardLogMessage {
+		env.Status.Message = &e.Response
+	}
+
+	return &env
+}

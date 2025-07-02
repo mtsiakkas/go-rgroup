@@ -37,6 +37,25 @@ func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerRespo
 	return r
 }
 
+// ToEnvelope - create Envelope from response.
+// Used when config.EnvelopeResponse is set.
+func (r *HandlerResponse) ToEnvelope() *Envelope {
+	e := Envelope{
+		Data: r.Data,
+		Status: EnvelopeStatus{
+			HTTPStatus: r.HTTPStatus,
+			Message:    nil,
+			Error:      nil,
+		},
+	}
+
+	if config.ForwardLogMessage {
+		e.Status.Message = &r.LogMessage
+	}
+
+	return &e
+}
+
 // EnvelopeStatus - status type for Envelope
 type EnvelopeStatus struct {
 	HTTPStatus int     `json:"http_status"`
