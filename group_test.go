@@ -659,7 +659,7 @@ func TestEnvelope(t *testing.T) {
 	})
 
 	t.Run("forward status code", func(t *testing.T) {
-		rgroup.SetForwardHttpStatus(true)
+		rgroup.SetForwardHTTPStatus(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated), nil

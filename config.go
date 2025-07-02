@@ -11,7 +11,7 @@ type GlobalConfig struct {
 	OptionsHandler       OptionsHandlerBehaviour
 	PostprocessOptions   bool
 	EnvelopeResponse     bool
-	ForwardHttpStatus    bool
+	ForwardHTTPStatus    bool
 	ForwardLogMessage    bool
 	RequestPostProcessor func(context.Context, *RequestData)
 }
@@ -21,7 +21,7 @@ var config = GlobalConfig{
 	DuplicateMethod:      0,
 	OptionsHandler:       0,
 	EnvelopeResponse:     false,
-	ForwardHttpStatus:    false,
+	ForwardHTTPStatus:    false,
 	ForwardLogMessage:    false,
 	RequestPostProcessor: nil,
 }
@@ -169,9 +169,9 @@ func SetForwardLogMessage(b bool) {
 	config.ForwardLogMessage = b
 }
 
-// SetForwardHttpStatus - self explanatory
-func SetForwardHttpStatus(b bool) {
-	config.ForwardHttpStatus = b
+// SetForwardHTTPStatus - self explanatory
+func SetForwardHTTPStatus(b bool) {
+	config.ForwardHTTPStatus = b
 }
 
 // SetEnvelopeResponse - self explanatory

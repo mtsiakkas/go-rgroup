@@ -254,7 +254,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		if config.EnvelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 			env := res.ToEnvelope()
 
-			if config.ForwardHttpStatus && (l.Status != http.StatusOK) {
+			if config.ForwardHTTPStatus && (l.Status != http.StatusOK) {
 				w.WriteHeader(l.Status)
 			}
 			l.ResponseSize, _ = write(w, env)
