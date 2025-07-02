@@ -8,26 +8,26 @@ import (
 
 // GlobalConfig defines all global configuration options
 type GlobalConfig struct {
-	duplicateMethod      DuplicateMethodBehaviour
-	optionsHandler       OptionsHandlerBehaviour
-	postprocessOptions   bool
-	envelopeResponse     bool
-	forwardHTTPStatus    bool
-	forwardLogMessage    bool
-	requestPostProcessor func(context.Context, *RequestData)
+	overwriteMethodBehaviour         OverwriteMethodBehaviour
+	overwriteOptionsHandlerBehaviour OverwriteOptionsHandlerBehaviour
+	postprocessOptions               bool
+	envelopeResponse                 bool
+	forwardHTTPStatus                bool
+	forwardLogMessage                bool
+	requestPostProcessor             func(context.Context, *RequestData)
 }
 
 var mtx = sync.RWMutex{}
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
 var Config = GlobalConfig{
-	postprocessOptions:   true,
-	duplicateMethod:      0,
-	optionsHandler:       0,
-	envelopeResponse:     false,
-	forwardHTTPStatus:    false,
-	forwardLogMessage:    false,
-	requestPostProcessor: nil,
+	postprocessOptions:               true,
+	overwriteMethodBehaviour:         0,
+	overwriteOptionsHandlerBehaviour: 0,
+	envelopeResponse:                 false,
+	forwardHTTPStatus:                false,
+	forwardLogMessage:                false,
+	requestPostProcessor:             nil,
 }
 
 // Reset the global config to the default values
@@ -36,128 +36,128 @@ func (c *GlobalConfig) Reset() *GlobalConfig {
 	defer mtx.Unlock()
 
 	*c = GlobalConfig{
-		postprocessOptions:   true,
-		duplicateMethod:      0,
-		optionsHandler:       0,
-		envelopeResponse:     false,
-		forwardHTTPStatus:    false,
-		forwardLogMessage:    false,
-		requestPostProcessor: nil,
+		postprocessOptions:               true,
+		overwriteMethodBehaviour:         0,
+		overwriteOptionsHandlerBehaviour: 0,
+		envelopeResponse:                 false,
+		forwardHTTPStatus:                false,
+		forwardLogMessage:                false,
+		requestPostProcessor:             nil,
 	}
 
 	return c
 }
 
-// DuplicateMethodBehaviour defines what should happen if the Handler for a method is reassigned
-type DuplicateMethodBehaviour int
+// OverwriteMethodBehaviour defines what should happen if the Handler for a method is reassigned
+type OverwriteMethodBehaviour int
 
 /*
-DuplicateMethodPanic - panic (default).
-DuplicateMethodError - return error.
-DuplicateMethodOverwrite - replace existing Handler.
-DuplicateMethodIgnore - ignore new Handler keeping old.
+OverwriteMethodPanic - panic (default).
+OverwriteMethodError - return error.
+OverwriteMethodAllow - replace existing Handler.
+OverwriteMethodIgnore - ignore new Handler keeping old.
 */
 const (
-	DuplicateMethodPanic DuplicateMethodBehaviour = iota
-	DuplicateMethodIgnore
-	DuplicateMethodOverwrite
-	DuplicateMethodError
+	OverwriteMethodPanic OverwriteMethodBehaviour = iota
+	OverwriteMethodIgnore
+	OverwriteMethodAllow
+	OverwriteMethodError
 )
 
-var duplicateMethodOpts = map[DuplicateMethodBehaviour]string{
-	DuplicateMethodPanic:     "panic",
-	DuplicateMethodIgnore:    "ignore",
-	DuplicateMethodOverwrite: "overwrite",
-	DuplicateMethodError:     "error",
+var duplicateMethodOpts = map[OverwriteMethodBehaviour]string{
+	OverwriteMethodPanic:  "panic",
+	OverwriteMethodIgnore: "ignore",
+	OverwriteMethodAllow:  "allow",
+	OverwriteMethodError:  "error",
 }
 
-// Validate - ensure d is a valid DuplicateMethodBehaviour option
-func (d DuplicateMethodBehaviour) Validate() bool {
+// Validate - ensure d is a valid OverwriteMethodBehaviour option
+func (d OverwriteMethodBehaviour) Validate() bool {
 	_, ok := duplicateMethodOpts[d]
 
 	return ok
 }
 
 // Implement Stringer interface
-func (d DuplicateMethodBehaviour) String() string {
+func (d OverwriteMethodBehaviour) String() string {
 	return duplicateMethodOpts[d]
 }
 
-// DuplicateMethodUknownOptionError - simple error struct returned by OnDuplicateMethod when passed option is invalid
-type DuplicateMethodUknownOptionError struct {
-	option DuplicateMethodBehaviour
+// OverwriteMethodUknownOptionError - simple error struct returned by OnOverwriteMethod when passed option is invalid
+type OverwriteMethodUknownOptionError struct {
+	option OverwriteMethodBehaviour
 }
 
-func (e DuplicateMethodUknownOptionError) Error() string {
-	return fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", e.option)
+func (e OverwriteMethodUknownOptionError) Error() string {
+	return fmt.Sprintf("unknown OverwriteMethodBehaviour option %d", e.option)
 }
 
-// OnDuplicateMethod - defines duplicate method behaviour
-// returns DuplicateMethodUknownOptionError error if invalid option is passed.
-func (c *GlobalConfig) OnDuplicateMethod(o DuplicateMethodBehaviour) error {
+// OnOverwriteMethod - defines duplicate method behaviour
+// returns OverwriteMethodUknownOptionError error if invalid option is passed.
+func (c *GlobalConfig) OnOverwriteMethod(o OverwriteMethodBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
 	if !o.Validate() {
-		return DuplicateMethodUknownOptionError{option: o}
+		return OverwriteMethodUknownOptionError{option: o}
 	}
 
-	c.duplicateMethod = o
+	c.overwriteMethodBehaviour = o
 
 	return nil
 }
 
-// GetDuplicateMethod - return current duplicate method setting
-func (c *GlobalConfig) GetDuplicateMethod() DuplicateMethodBehaviour {
+// GetOverwriteMethod - return current duplicate method setting
+func (c *GlobalConfig) GetOverwriteMethod() OverwriteMethodBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
-	return c.duplicateMethod
+	return c.overwriteMethodBehaviour
 }
 
-// OptionsHandlerBehaviour defines what should happen if the OPTIONS handler is manually set
-type OptionsHandlerBehaviour int
+// OverwriteOptionsHandlerBehaviour defines what should happen if the OPTIONS handler is manually set
+type OverwriteOptionsHandlerBehaviour int
 
 /*
-OptionsHandlerPanic - panic (default).
-OptionsHandlerIgnore - ignore new Handler keeping old.
-OptionsHandlerOverwrite - replace default handler.
+OverwriteOptionsHandlerPanic - panic (default).
+OverwriteOptionsHandlerIgnore - ignore new Handler keeping old.
+OverwriteOptionsHandlerOverwrite - replace default handler.
 */
 const (
-	OptionsHandlerPanic OptionsHandlerBehaviour = iota // default
-	OptionsHandlerIgnore
-	OptionsHandlerOverwrite
+	OverwriteOptionsHandlerPanic OverwriteOptionsHandlerBehaviour = iota // default
+	OverwriteOptionsHandlerIgnore
+	OverwriteOptionsHandlerOverwrite
 )
 
-var optsOpts = map[OptionsHandlerBehaviour]string{
-	OptionsHandlerPanic:     "panic",
-	OptionsHandlerIgnore:    "ignore",
-	OptionsHandlerOverwrite: "overwrite",
+var optsOpts = map[OverwriteOptionsHandlerBehaviour]string{
+	OverwriteOptionsHandlerPanic:     "panic",
+	OverwriteOptionsHandlerIgnore:    "ignore",
+	OverwriteOptionsHandlerOverwrite: "overwrite",
 }
 
 // Implement Stringer interface
-func (o OptionsHandlerBehaviour) String() string {
+func (o OverwriteOptionsHandlerBehaviour) String() string {
 	return optsOpts[o]
 }
 
 // Validate - ensure d is a valid OptionsHandlerBehaviour option
-func (o OptionsHandlerBehaviour) Validate() bool {
+func (o OverwriteOptionsHandlerBehaviour) Validate() bool {
 	_, ok := optsOpts[o]
 
 	return ok
 }
 
-// OptionsHandlerUknownOptionError - simple error struct returned by OnOptionsHandler when passed option is invalid
+// OptionsHandlerUknownOptionError - error struct returned by OnOverwriteOptionsHandler when passed option is invalid
 type OptionsHandlerUknownOptionError struct {
-	option OptionsHandlerBehaviour
+	option OverwriteOptionsHandlerBehaviour
 }
 
 func (e OptionsHandlerUknownOptionError) Error() string {
-	return fmt.Sprintf("unknown OptionsHandlerBehaviour option %d", e.option)
+	return fmt.Sprintf("unknown OverwriteOptionsHandlerBehaviour option %d", e.option)
 }
 
-// OnOptionsHandler - set options method overwrite setting
-func (c *GlobalConfig) OnOptionsHandler(o OptionsHandlerBehaviour) error {
+// OnOverwriteOptionsHandler - set options method overwrite setting
+func (c *GlobalConfig) OnOverwriteOptionsHandler(o OverwriteOptionsHandlerBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -165,17 +165,17 @@ func (c *GlobalConfig) OnOptionsHandler(o OptionsHandlerBehaviour) error {
 		return OptionsHandlerUknownOptionError{option: o}
 	}
 
-	c.optionsHandler = o
+	c.overwriteOptionsHandlerBehaviour = o
 
 	return nil
 }
 
 // GetOnOptionsHandler - return the current options method overwrite behaviour
-func (c *GlobalConfig) GetOnOptionsHandler() OptionsHandlerBehaviour {
+func (c *GlobalConfig) GetOnOptionsHandler() OverwriteOptionsHandlerBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
-	return c.optionsHandler
+	return c.overwriteOptionsHandlerBehaviour
 }
 
 // SetGlobalPostprocessor - set global request post processor

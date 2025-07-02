@@ -276,7 +276,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("overwrite", func(t *testing.T) {
 
-			if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerOverwrite); err != nil {
+			if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerOverwrite); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -306,7 +306,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("ignore", func(t *testing.T) {
 
-			if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+			if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -341,7 +341,7 @@ func TestGlobalSettings(t *testing.T) {
 	})
 
 	t.Run("duplicate handler", func(t *testing.T) {
-		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodPanic); err != nil {
+		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodPanic); err != nil {
 			t.Log(err)
 			t.Fail()
 		}
@@ -364,7 +364,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("error", func(t *testing.T) {
-			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodError); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -385,7 +385,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("ignore", func(t *testing.T) {
-			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodIgnore); err != nil {
+			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -410,14 +410,14 @@ func TestGlobalSettings(t *testing.T) {
 				t.Fail()
 			}
 			if string(b) != "get1" {
-				t.Logf("DuplicateHandlerIgnore unexpected output: got \"%s\"", string(b))
+				t.Logf("OverwriteHandlerIgnore unexpected output: got \"%s\"", string(b))
 				t.Fail()
 			}
 
 		})
 
 		t.Run("overwrite", func(t *testing.T) {
-			if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodOverwrite); err != nil {
+			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodAllow); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -442,7 +442,7 @@ func TestGlobalSettings(t *testing.T) {
 				t.Fail()
 			}
 			if string(b) != "get2" {
-				t.Logf("DuplicateHandlerOverwrite unexpected output: got \"%s\"", string(b))
+				t.Logf("OverwriteHandlerOverwrite unexpected output: got \"%s\"", string(b))
 				t.Fail()
 			}
 		})

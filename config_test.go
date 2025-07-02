@@ -10,83 +10,83 @@ import (
 	"github.com/mtsiakkas/go-rgroup"
 )
 
-func TestGlobalDuplicateHandler(t *testing.T) {
+func TestGlobalOverwriteHandler(t *testing.T) {
 	t.Run("set - unknown option", func(t *testing.T) {
-		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodBehaviour(4)); err == nil {
+		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodBehaviour(4)); err == nil {
 			t.Log("expected error")
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodError); err != nil {
+		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodError); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		if !rgroup.DuplicateMethodError.Validate() {
-			t.Logf("%s not validated", rgroup.DuplicateMethodError)
+		if !rgroup.OverwriteMethodError.Validate() {
+			t.Logf("%s not validated", rgroup.OverwriteMethodError)
 			t.Fail()
 		}
 	})
 
 	t.Run("stringer", func(t *testing.T) {
-		if rgroup.DuplicateMethodError.String() != "error" {
-			t.Logf("unexpected .String(): %s", rgroup.DuplicateMethodError.String())
+		if rgroup.OverwriteMethodError.String() != "error" {
+			t.Logf("unexpected .String(): %s", rgroup.OverwriteMethodError.String())
 			t.Fail()
 		}
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.Config.GetDuplicateMethod() != rgroup.DuplicateMethodError {
-			t.Logf("got %s", rgroup.Config.GetDuplicateMethod())
+		if rgroup.Config.GetOverwriteMethod() != rgroup.OverwriteMethodError {
+			t.Logf("got %s", rgroup.Config.GetOverwriteMethod())
 			t.Fail()
 		}
 	})
 
-	_ = rgroup.Config.OnDuplicateMethod(rgroup.DuplicateMethodPanic)
+	_ = rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodPanic)
 
 }
 
 func TestGlobalOptionsHandler(t *testing.T) {
 
 	t.Run("options - unknown option", func(t *testing.T) {
-		if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerBehaviour(4)); err == nil {
+		if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerBehaviour(4)); err == nil {
 			t.Log("expected error", err)
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerIgnore); err != nil {
+		if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
 	})
 
 	t.Run("validate", func(t *testing.T) {
-		if !rgroup.OptionsHandlerIgnore.Validate() {
-			t.Logf("%s not validated", rgroup.OptionsHandlerIgnore)
+		if !rgroup.OverwriteOptionsHandlerIgnore.Validate() {
+			t.Logf("%s not validated", rgroup.OverwriteOptionsHandlerIgnore)
 			t.Fail()
 		}
 	})
 
 	t.Run("stringer", func(t *testing.T) {
-		if rgroup.OptionsHandlerIgnore.String() != "ignore" {
-			t.Logf("unexpected .String(): %s", rgroup.OptionsHandlerIgnore.String())
+		if rgroup.OverwriteOptionsHandlerIgnore.String() != "ignore" {
+			t.Logf("unexpected .String(): %s", rgroup.OverwriteOptionsHandlerIgnore.String())
 			t.Fail()
 		}
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.Config.GetOnOptionsHandler() != rgroup.OptionsHandlerIgnore {
+		if rgroup.Config.GetOnOptionsHandler() != rgroup.OverwriteOptionsHandlerIgnore {
 			t.Fail()
 		}
 	})
 
-	_ = rgroup.Config.OnOptionsHandler(rgroup.OptionsHandlerPanic)
+	_ = rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerPanic)
 }
 
 func TestGlobalPostprocessor(t *testing.T) {

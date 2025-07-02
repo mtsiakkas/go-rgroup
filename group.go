@@ -52,16 +52,16 @@ func New() *HandlerGroup {
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	if _, ok := handlers[http.MethodOptions]; ok {
-		switch Config.optionsHandler {
-		case OptionsHandlerPanic:
+		switch Config.overwriteOptionsHandlerBehaviour {
+		case OverwriteOptionsHandlerPanic:
 			panic("cannot overwrite options handler")
-		case OptionsHandlerOverwrite:
+		case OverwriteOptionsHandlerOverwrite:
 			fmt.Print("overwriting OPTIONS handler")
-		case OptionsHandlerIgnore:
+		case OverwriteOptionsHandlerIgnore:
 			delete(handlers, http.MethodOptions)
 			fmt.Print("ignoring OPTIONS handler")
 		default:
-			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", Config.optionsHandler))
+			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", Config.overwriteOptionsHandlerBehaviour))
 		}
 	}
 
@@ -99,19 +99,19 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 
 	m := strings.ToUpper(method)
 	if _, ok := h.handlers[m]; ok {
-		switch Config.duplicateMethod {
-		case DuplicateMethodPanic:
+		switch Config.overwriteMethodBehaviour {
+		case OverwriteMethodPanic:
 			panic("cannot overwrite options handler")
-		case DuplicateMethodIgnore:
+		case OverwriteMethodIgnore:
 			fmt.Print("ignoring duplicate handler")
 
 			return nil
-		case DuplicateMethodOverwrite:
+		case OverwriteMethodAllow:
 			fmt.Print("overwriting OPTIONS handler")
-		case DuplicateMethodError:
+		case OverwriteMethodError:
 			return DuplicateMethodExistsError{method: m}
 		default:
-			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", Config.duplicateMethod))
+			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", Config.overwriteMethodBehaviour))
 		}
 	}
 
@@ -167,7 +167,7 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == http.MethodOptions {
 		// check if custom options handler was provided
-		if f, ok := h.handlers[req.Method]; ok && Config.GetOnOptionsHandler() == OptionsHandlerOverwrite {
+		if f, ok := h.handlers[req.Method]; ok && Config.GetOnOptionsHandler() == OverwriteOptionsHandlerOverwrite {
 			return f.applyMiddleware(h.middleware)(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
