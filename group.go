@@ -186,7 +186,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 // Make generates an http.HandlerFunc from the HandlerGroup
 func (h *HandlerGroup) Make() http.HandlerFunc {
 	if len(h.handlers) == 0 {
-		return func(w http.ResponseWriter, req *http.Request) {}
+		return func(_ http.ResponseWriter, _ *http.Request) {}
 	}
 
 	// set handler request postprocessor
