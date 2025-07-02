@@ -27,17 +27,6 @@ linters:
     nilnil:
       detect-opposite: true
 
-    revive:
-      rules:
-        - name: exported
-          disabled: false
-          arguments:
-            #- "disable-checks-on-constants"
-            #- "disable-checks-on-functions"
-            #- "disable-checks-on-methods"
-            #- "disable-checks-on-types"
-            #- "disable-checks-on-variables"
-
 run:
   timeout: 5m
   tests: false
