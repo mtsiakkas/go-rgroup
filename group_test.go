@@ -716,7 +716,35 @@ func TestEnvelope(t *testing.T) {
 		}
 	})
 
-	t.Run("forward message", func(t *testing.T) {
+	t.Run("forward message - no message", func(t *testing.T) {
+		rgroup.Config.SetForwardLogMessage(true)
+
+		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+			return rgroup.Response("test").WithHTTPStatus(http.StatusCreated).WithMessage(""), nil
+		}}).Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b, err := io.ReadAll(rr.Body)
+		if err != nil {
+			t.Logf("unexpected error: %s", err)
+			t.Fail()
+		}
+
+		if rr.Code != http.StatusOK {
+			t.Logf("unexpected code: %d", rr.Code)
+		}
+
+		if string(b) != "{\"data\":\"test\",\"status\":{\"http_status\":201}}" {
+			t.Logf("unexpected response: %s", string(b))
+			t.Fail()
+		}
+	})
+
+	t.Run("forward message - with message", func(t *testing.T) {
 		rgroup.Config.SetForwardLogMessage(true)
 
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {

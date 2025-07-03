@@ -49,7 +49,7 @@ func (r *HandlerResponse) ToEnvelope() *Envelope {
 		},
 	}
 
-	if Config.forwardLogMessage {
+	if Config.forwardLogMessage && r.LogMessage != "" {
 		e.Status.Message = &r.LogMessage
 	}
 
