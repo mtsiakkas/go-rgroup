@@ -167,7 +167,8 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 	if req.Method == http.MethodOptions {
 		// check if custom options handler was provided
-		if f, ok := h.handlers[req.Method]; ok && Config.GetOnOptionsHandler() == OverwriteOptionsHandlerOverwrite {
+		f, ok := h.handlers[req.Method]
+		if ok && Config.GetOverwriteOptionsHandlerBehaviour() == OverwriteOptionsHandlerOverwrite {
 			return f.applyMiddleware(h.middleware)(w, req)
 		}
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))

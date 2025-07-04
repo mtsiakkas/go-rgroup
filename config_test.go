@@ -12,14 +12,14 @@ import (
 
 func TestGlobalOverwriteHandler(t *testing.T) {
 	t.Run("set - unknown option", func(t *testing.T) {
-		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodBehaviour(4)); err == nil {
+		if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodBehaviour(4)); err == nil {
 			t.Log("expected error")
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodError); err != nil {
+		if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodError); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
@@ -46,21 +46,21 @@ func TestGlobalOverwriteHandler(t *testing.T) {
 		}
 	})
 
-	_ = rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodPanic)
+	_ = rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodPanic)
 
 }
 
 func TestGlobalOptionsHandler(t *testing.T) {
 
 	t.Run("options - unknown option", func(t *testing.T) {
-		if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerBehaviour(4)); err == nil {
+		if err := rgroup.Config.SetOverwriteOptionsHandlerBehaviour(rgroup.OverwriteOptionsHandlerBehaviour(4)); err == nil {
 			t.Log("expected error", err)
 			t.Fail()
 		}
 	})
 
 	t.Run("set - success", func(t *testing.T) {
-		if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
+		if err := rgroup.Config.SetOverwriteOptionsHandlerBehaviour(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
 			t.Logf("unexpected error: %s", err)
 			t.Fail()
 		}
@@ -81,12 +81,12 @@ func TestGlobalOptionsHandler(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.Config.GetOnOptionsHandler() != rgroup.OverwriteOptionsHandlerIgnore {
+		if rgroup.Config.GetOverwriteOptionsHandlerBehaviour() != rgroup.OverwriteOptionsHandlerIgnore {
 			t.Fail()
 		}
 	})
 
-	_ = rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerPanic)
+	_ = rgroup.Config.SetOverwriteOptionsHandlerBehaviour(rgroup.OverwriteOptionsHandlerPanic)
 }
 
 func TestGlobalPostprocessor(t *testing.T) {

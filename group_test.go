@@ -276,7 +276,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("overwrite", func(t *testing.T) {
 
-			if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerOverwrite); err != nil {
+			if err := rgroup.Config.SetOverwriteOptionsHandlerBehaviour(rgroup.OverwriteOptionsHandlerOverwrite); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -306,7 +306,7 @@ func TestGlobalSettings(t *testing.T) {
 
 		t.Run("ignore", func(t *testing.T) {
 
-			if err := rgroup.Config.OnOverwriteOptionsHandler(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
+			if err := rgroup.Config.SetOverwriteOptionsHandlerBehaviour(rgroup.OverwriteOptionsHandlerIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -341,7 +341,7 @@ func TestGlobalSettings(t *testing.T) {
 	})
 
 	t.Run("duplicate handler", func(t *testing.T) {
-		if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodPanic); err != nil {
+		if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodPanic); err != nil {
 			t.Log(err)
 			t.Fail()
 		}
@@ -364,7 +364,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("error", func(t *testing.T) {
-			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodError); err != nil {
+			if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodError); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -385,7 +385,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("ignore", func(t *testing.T) {
-			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodIgnore); err != nil {
+			if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodIgnore); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}
@@ -417,7 +417,7 @@ func TestGlobalSettings(t *testing.T) {
 		})
 
 		t.Run("overwrite", func(t *testing.T) {
-			if err := rgroup.Config.OnOverwriteMethod(rgroup.OverwriteMethodAllow); err != nil {
+			if err := rgroup.Config.SetOverwriteMethodBehaviour(rgroup.OverwriteMethodAllow); err != nil {
 				t.Logf("unexpected error: %s", err)
 				t.FailNow()
 			}

@@ -77,7 +77,8 @@ func (d OverwriteMethodBehaviour) String() string {
 	return duplicateMethodOpts[d]
 }
 
-// OverwriteMethodUknownOptionError - simple error struct returned by OnOverwriteMethod when passed option is invalid
+// OverwriteMethodUknownOptionError - simple error struct
+// returned by SetOverwriteMethodBehaviour when passed option is invalid
 type OverwriteMethodUknownOptionError struct {
 	option OverwriteMethodBehaviour
 }
@@ -86,9 +87,9 @@ func (e OverwriteMethodUknownOptionError) Error() string {
 	return fmt.Sprintf("unknown OverwriteMethodBehaviour option %d", e.option)
 }
 
-// OnOverwriteMethod - defines duplicate method behaviour
+// SetOverwriteMethodBehaviour - defines duplicate method behaviour
 // returns OverwriteMethodUknownOptionError error if invalid option is passed.
-func (c *GlobalConfig) OnOverwriteMethod(o OverwriteMethodBehaviour) error {
+func (c *GlobalConfig) SetOverwriteMethodBehaviour(o OverwriteMethodBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -141,7 +142,8 @@ func (o OverwriteOptionsHandlerBehaviour) Validate() bool {
 	return ok
 }
 
-// OptionsHandlerUknownOptionError - error struct returned by OnOverwriteOptionsHandler when passed option is invalid
+// OptionsHandlerUknownOptionError - error struct returned by
+// SetOverwriteOptionsHandlerBehaviour when passed option is invalid
 type OptionsHandlerUknownOptionError struct {
 	option OverwriteOptionsHandlerBehaviour
 }
@@ -150,8 +152,8 @@ func (e OptionsHandlerUknownOptionError) Error() string {
 	return fmt.Sprintf("unknown OverwriteOptionsHandlerBehaviour option %d", e.option)
 }
 
-// OnOverwriteOptionsHandler - set options method overwrite setting
-func (c *GlobalConfig) OnOverwriteOptionsHandler(o OverwriteOptionsHandlerBehaviour) error {
+// SetOverwriteOptionsHandlerBehaviour - set options method overwrite setting
+func (c *GlobalConfig) SetOverwriteOptionsHandlerBehaviour(o OverwriteOptionsHandlerBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -164,8 +166,8 @@ func (c *GlobalConfig) OnOverwriteOptionsHandler(o OverwriteOptionsHandlerBehavi
 	return nil
 }
 
-// GetOnOptionsHandler - return the current options method overwrite behaviour
-func (c *GlobalConfig) GetOnOptionsHandler() OverwriteOptionsHandlerBehaviour {
+// GetOverwriteOptionsHandlerBehaviour - return the current options method overwrite behaviour
+func (c *GlobalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHandlerBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
