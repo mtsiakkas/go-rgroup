@@ -17,6 +17,8 @@ else
 	golangci-lint run
 endif
 
+ci: test lint
+
 TARGET?=patch
 tag:
 ifeq (, $(shell which git-semver 2>/dev/null))
