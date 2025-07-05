@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// GlobalConfig defines all global configuration options
-type GlobalConfig struct {
+// globalConfig defines all global configuration options
+type globalConfig struct {
 	overwriteMethodBehaviour         OverwriteMethodBehaviour
 	overwriteOptionsHandlerBehaviour OverwriteOptionsHandlerBehaviour
 	postprocessOptions               bool
@@ -20,7 +20,7 @@ type GlobalConfig struct {
 
 var mtx = sync.RWMutex{}
 
-var defaultConfig = GlobalConfig{
+var defaultConfig = globalConfig{
 	postprocessOptions:               true,
 	overwriteMethodBehaviour:         OverwriteMethodPanic,
 	overwriteOptionsHandlerBehaviour: OverwriteOptionsHandlerPanic,
@@ -35,7 +35,7 @@ var defaultConfig = GlobalConfig{
 var Config = defaultConfig
 
 // Reset the global config to the default values
-func (c *GlobalConfig) Reset() *GlobalConfig {
+func (c *globalConfig) Reset() *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -91,7 +91,7 @@ func (e OverwriteMethodUknownOptionError) Error() string {
 
 // SetOverwriteMethodBehaviour - defines duplicate method behaviour
 // returns OverwriteMethodUknownOptionError error if invalid option is passed.
-func (c *GlobalConfig) SetOverwriteMethodBehaviour(o OverwriteMethodBehaviour) error {
+func (c *globalConfig) SetOverwriteMethodBehaviour(o OverwriteMethodBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -105,7 +105,7 @@ func (c *GlobalConfig) SetOverwriteMethodBehaviour(o OverwriteMethodBehaviour) e
 }
 
 // GetOverwriteMethod - return current duplicate method setting
-func (c *GlobalConfig) GetOverwriteMethod() OverwriteMethodBehaviour {
+func (c *globalConfig) GetOverwriteMethod() OverwriteMethodBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
@@ -155,7 +155,7 @@ func (e OptionsHandlerUknownOptionError) Error() string {
 }
 
 // SetOverwriteOptionsHandlerBehaviour - set options method overwrite setting
-func (c *GlobalConfig) SetOverwriteOptionsHandlerBehaviour(o OverwriteOptionsHandlerBehaviour) error {
+func (c *globalConfig) SetOverwriteOptionsHandlerBehaviour(o OverwriteOptionsHandlerBehaviour) error {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -169,7 +169,7 @@ func (c *GlobalConfig) SetOverwriteOptionsHandlerBehaviour(o OverwriteOptionsHan
 }
 
 // GetOverwriteOptionsHandlerBehaviour - return the current options method overwrite behaviour
-func (c *GlobalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHandlerBehaviour {
+func (c *globalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHandlerBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
@@ -177,7 +177,7 @@ func (c *GlobalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHan
 }
 
 // SetGlobalPostprocessor - set global request post processor
-func (c *GlobalConfig) SetGlobalPostprocessor(p func(*RequestData)) *GlobalConfig {
+func (c *globalConfig) SetGlobalPostprocessor(p func(*RequestData)) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -187,7 +187,7 @@ func (c *GlobalConfig) SetGlobalPostprocessor(p func(*RequestData)) *GlobalConfi
 }
 
 // GetGlobalPostprocessor - get global request post processor
-func (c *GlobalConfig) GetGlobalPostprocessor() func(*RequestData) {
+func (c *globalConfig) GetGlobalPostprocessor() func(*RequestData) {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
@@ -195,7 +195,7 @@ func (c *GlobalConfig) GetGlobalPostprocessor() func(*RequestData) {
 }
 
 // SetPostprocessOptions - self explanaroty
-func (c *GlobalConfig) SetPostprocessOptions(b bool) *GlobalConfig {
+func (c *globalConfig) SetPostprocessOptions(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -205,7 +205,7 @@ func (c *GlobalConfig) SetPostprocessOptions(b bool) *GlobalConfig {
 }
 
 // SetForwardLogMessage - self explanatory
-func (c *GlobalConfig) SetForwardLogMessage(b bool) *GlobalConfig {
+func (c *globalConfig) SetForwardLogMessage(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -215,7 +215,7 @@ func (c *GlobalConfig) SetForwardLogMessage(b bool) *GlobalConfig {
 }
 
 // SetForwardHTTPStatus - self explanatory
-func (c *GlobalConfig) SetForwardHTTPStatus(b bool) *GlobalConfig {
+func (c *globalConfig) SetForwardHTTPStatus(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -225,7 +225,7 @@ func (c *GlobalConfig) SetForwardHTTPStatus(b bool) *GlobalConfig {
 }
 
 // SetEnvelopeResponse - self explanatory
-func (c *GlobalConfig) SetEnvelopeResponse(b bool) *GlobalConfig {
+func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -235,7 +235,7 @@ func (c *GlobalConfig) SetEnvelopeResponse(b bool) *GlobalConfig {
 }
 
 // SetResponsePrewriter - self explanatory
-func (c *GlobalConfig) SetResponsePrewriter(f func(*http.Request, any) any) *GlobalConfig {
+func (c *globalConfig) SetResponsePrewriter(f func(*http.Request, any) any) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
