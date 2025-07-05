@@ -1,7 +1,6 @@
 package rgroup
 
 import (
-	"context"
 	"fmt"
 	"sync"
 )
@@ -14,7 +13,7 @@ type GlobalConfig struct {
 	envelopeResponse                 bool
 	forwardHTTPStatus                bool
 	forwardLogMessage                bool
-	requestPostProcessor             func(context.Context, *RequestData)
+	requestPostProcessor             func(*RequestData)
 }
 
 var mtx = sync.RWMutex{}
@@ -175,7 +174,7 @@ func (c *GlobalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHan
 }
 
 // SetGlobalPostprocessor - set global request post processor
-func (c *GlobalConfig) SetGlobalPostprocessor(p func(context.Context, *RequestData)) *GlobalConfig {
+func (c *GlobalConfig) SetGlobalPostprocessor(p func(*RequestData)) *GlobalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -185,7 +184,7 @@ func (c *GlobalConfig) SetGlobalPostprocessor(p func(context.Context, *RequestDa
 }
 
 // GetGlobalPostprocessor - get global request post processor
-func (c *GlobalConfig) GetGlobalPostprocessor() func(context.Context, *RequestData) {
+func (c *GlobalConfig) GetGlobalPostprocessor() func(*RequestData) {
 	mtx.RLock()
 	defer mtx.RUnlock()
 

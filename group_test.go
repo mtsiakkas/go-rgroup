@@ -493,7 +493,7 @@ func TestPostprocessor(t *testing.T) {
 	})
 
 	t.Run("global", func(t *testing.T) {
-		print := func(ctx context.Context, r *rgroup.RequestData) {
+		print := func(r *rgroup.RequestData) {
 			fmt.Println("global")
 		}
 		rgroup.Config.SetGlobalPostprocessor(print)
@@ -518,7 +518,7 @@ func TestPostprocessor(t *testing.T) {
 	})
 
 	t.Run("global + local", func(t *testing.T) {
-		print := func(ctx context.Context, r *rgroup.RequestData) {
+		print := func(r *rgroup.RequestData) {
 			fmt.Println("request complete")
 		}
 
@@ -547,7 +547,7 @@ func TestPostprocessor(t *testing.T) {
 	t.Run("request with context", func(t *testing.T) {
 
 		type ContextKey string
-		print := func(ctx context.Context, r *rgroup.RequestData) {
+		print := func(r *rgroup.RequestData) {
 			c := r.Request.Context().Value(ContextKey("test")).(string)
 			fmt.Println("request complete: " + c)
 		}

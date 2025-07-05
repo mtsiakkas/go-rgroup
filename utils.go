@@ -2,7 +2,6 @@
 package rgroup
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -21,7 +20,7 @@ func timeScale(t int64) (float32, string) {
 	return dur, units[i]
 }
 
-func defaultPrint(_ context.Context, r *RequestData) {
+func defaultPrint(r *RequestData) {
 	printFunc := log.Printf
 	if r.IsError {
 		printFunc = func(s string, args ...any) { log.Printf("\033[31m"+s+"\033[0m", args...) }

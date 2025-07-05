@@ -1,7 +1,6 @@
 package rgroup_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -90,7 +89,7 @@ func TestGlobalOptionsHandler(t *testing.T) {
 }
 
 func TestGlobalPostprocessor(t *testing.T) {
-	rgroup.Config.SetGlobalPostprocessor(func(ctx context.Context, req *rgroup.RequestData) {
+	rgroup.Config.SetGlobalPostprocessor(func(req *rgroup.RequestData) {
 		fmt.Println("global postprocessor")
 	})
 

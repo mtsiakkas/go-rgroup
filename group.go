@@ -1,7 +1,6 @@
 package rgroup
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -22,7 +21,7 @@ type HandlerMap map[string]Handler
 // HandlerGroup is a structure that contains all Handlers, Middleware and request postprocessor for a route
 type HandlerGroup struct {
 	handlers      HandlerMap
-	postprocessor func(context.Context, *RequestData)
+	postprocessor func(*RequestData)
 	middleware    []Middleware
 }
 
@@ -76,7 +75,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 }
 
 // SetPostprocessor assigns a local postprocessor function to the HandlerGroup
-func (h *HandlerGroup) SetPostprocessor(p func(context.Context, *RequestData)) {
+func (h *HandlerGroup) SetPostprocessor(p func(*RequestData)) {
 	h.postprocessor = p
 }
 
@@ -202,8 +201,6 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-
 		l := FromRequest(req)
 		res, err := h.serve(w, req)
 		l.Time()
@@ -211,10 +208,10 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		defer func() {
 			if req.Method == http.MethodOptions {
 				if Config.postprocessOptions {
-					h.postprocessor(ctx, l)
+					h.postprocessor(l)
 				}
 			} else {
-				h.postprocessor(ctx, l)
+				h.postprocessor(l)
 			}
 		}()
 
