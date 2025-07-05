@@ -15,7 +15,7 @@ type globalConfig struct {
 	forwardHTTPStatus                bool
 	forwardLogMessage                bool
 	requestPostProcessor             func(*RequestData)
-	responsePrewriter                func(*http.Request, any) any
+	responsePrewriter                func(*http.Request, *HandlerResponse) *HandlerResponse
 }
 
 var mtx = sync.RWMutex{}
@@ -235,7 +235,7 @@ func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 }
 
 // SetResponsePrewriter - self explanatory
-func (c *globalConfig) SetResponsePrewriter(f func(*http.Request, any) any) *globalConfig {
+func (c *globalConfig) SetResponsePrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
