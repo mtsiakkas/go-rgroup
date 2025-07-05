@@ -2,6 +2,7 @@ package rgroup
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 )
 
@@ -14,6 +15,7 @@ type GlobalConfig struct {
 	forwardHTTPStatus                bool
 	forwardLogMessage                bool
 	requestPostProcessor             func(*RequestData)
+	responsePrewriter                func(*http.Request, any) any
 }
 
 var mtx = sync.RWMutex{}
@@ -26,6 +28,7 @@ var defaultConfig = GlobalConfig{
 	forwardHTTPStatus:                false,
 	forwardLogMessage:                false,
 	requestPostProcessor:             nil,
+	responsePrewriter:                nil,
 }
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
@@ -227,6 +230,16 @@ func (c *GlobalConfig) SetEnvelopeResponse(b bool) *GlobalConfig {
 	defer mtx.Unlock()
 
 	c.envelopeResponse = b
+
+	return c
+}
+
+// SetResponsePrewriter - self explanatory
+func (c *GlobalConfig) SetResponsePrewriter(f func(*http.Request, any) any) *GlobalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	c.responsePrewriter = f
 
 	return c
 }

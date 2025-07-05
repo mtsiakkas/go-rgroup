@@ -203,6 +203,11 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		l := FromRequest(req)
 		res, err := h.serve(w, req)
+
+		if Config.responsePrewriter != nil {
+			res.Data = Config.responsePrewriter(req, res.Data)
+		}
+
 		l.Time()
 
 		defer func() {
