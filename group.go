@@ -20,9 +20,9 @@ type HandlerMap map[string]Handler
 
 // HandlerGroup is a structure that contains all Handlers, Middleware and request postprocessor for a route
 type HandlerGroup struct {
-	handlers      HandlerMap
-	postprocessor func(*RequestData)
-	middleware    []Middleware
+	handlers   HandlerMap
+	logger     func(*RequestData)
+	middleware []Middleware
 }
 
 // MethodsAllowed returns a string slice with all http verbs handled by the group
@@ -76,7 +76,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 
 // SetPostprocessor assigns a local postprocessor function to the HandlerGroup
 func (h *HandlerGroup) SetPostprocessor(p func(*RequestData)) {
-	h.postprocessor = p
+	h.logger = p
 }
 
 // DuplicateMethodExistsError is a simple error struct indicating that a handler for the
@@ -191,12 +191,12 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 	// set handler request postprocessor
 	// local > global > default
-	if h.postprocessor == nil {
-		g := Config.GetGlobalPostprocessor()
+	if h.logger == nil {
+		g := Config.GetGlobalLogger()
 		if g != nil {
-			h.postprocessor = g
+			h.logger = g
 		} else {
-			h.postprocessor = defaultPrint
+			h.logger = defaultPrint
 		}
 	}
 
@@ -212,11 +212,11 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 		defer func() {
 			if req.Method == http.MethodOptions {
-				if Config.postprocessOptions {
-					h.postprocessor(l)
+				if Config.logOptions {
+					h.logger(l)
 				}
 			} else {
-				h.postprocessor(l)
+				h.logger(l)
 			}
 		}()
 

@@ -89,7 +89,7 @@ func TestGlobalOptionsHandler(t *testing.T) {
 }
 
 func TestGlobalPostprocessor(t *testing.T) {
-	rgroup.Config.SetGlobalPostprocessor(func(req *rgroup.RequestData) {
+	rgroup.Config.SetGlobalLogger(func(req *rgroup.RequestData) {
 		fmt.Println("global postprocessor")
 	})
 
@@ -105,11 +105,11 @@ func TestGlobalPostprocessor(t *testing.T) {
 		t.Fail()
 	}
 
-	p := rgroup.Config.GetGlobalPostprocessor()
+	p := rgroup.Config.GetGlobalLogger()
 	if p == nil {
 		t.Log("expected not nil global postprocessor")
 		t.Fail()
 	}
 
-	rgroup.Config.SetGlobalPostprocessor(nil)
+	rgroup.Config.SetGlobalLogger(nil)
 }

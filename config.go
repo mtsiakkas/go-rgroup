@@ -10,24 +10,24 @@ import (
 type globalConfig struct {
 	overwriteMethodBehaviour         OverwriteMethodBehaviour
 	overwriteOptionsHandlerBehaviour OverwriteOptionsHandlerBehaviour
-	postprocessOptions               bool
+	logOptions                       bool
 	envelopeResponse                 bool
 	forwardHTTPStatus                bool
 	forwardLogMessage                bool
-	requestPostProcessor             func(*RequestData)
+	logger                           func(*RequestData)
 	responsePrewriter                func(*http.Request, *HandlerResponse) *HandlerResponse
 }
 
 var mtx = sync.RWMutex{}
 
 var defaultConfig = globalConfig{
-	postprocessOptions:               true,
+	logOptions:                       true,
 	overwriteMethodBehaviour:         OverwriteMethodPanic,
 	overwriteOptionsHandlerBehaviour: OverwriteOptionsHandlerPanic,
 	envelopeResponse:                 false,
 	forwardHTTPStatus:                false,
 	forwardLogMessage:                false,
-	requestPostProcessor:             nil,
+	logger:                           nil,
 	responsePrewriter:                nil,
 }
 
@@ -176,30 +176,30 @@ func (c *globalConfig) GetOverwriteOptionsHandlerBehaviour() OverwriteOptionsHan
 	return c.overwriteOptionsHandlerBehaviour
 }
 
-// SetGlobalPostprocessor - set global request post processor
-func (c *globalConfig) SetGlobalPostprocessor(p func(*RequestData)) *globalConfig {
+// SetGlobalLogger - set global request post processor
+func (c *globalConfig) SetGlobalLogger(p func(*RequestData)) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.requestPostProcessor = p
+	c.logger = p
 
 	return c
 }
 
-// GetGlobalPostprocessor - get global request post processor
-func (c *globalConfig) GetGlobalPostprocessor() func(*RequestData) {
+// GetGlobalLogger - get global request post processor
+func (c *globalConfig) GetGlobalLogger() func(*RequestData) {
 	mtx.RLock()
 	defer mtx.RUnlock()
 
-	return c.requestPostProcessor
+	return c.logger
 }
 
-// SetPostprocessOptions - self explanaroty
-func (c *globalConfig) SetPostprocessOptions(b bool) *globalConfig {
+// SetLogOptionsRequests - self explanaroty
+func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.postprocessOptions = b
+	c.logOptions = b
 
 	return c
 }

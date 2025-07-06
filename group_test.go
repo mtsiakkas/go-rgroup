@@ -496,7 +496,7 @@ func TestPostprocessor(t *testing.T) {
 		print := func(r *rgroup.RequestData) {
 			fmt.Println("global")
 		}
-		rgroup.Config.SetGlobalPostprocessor(print)
+		rgroup.Config.SetGlobalLogger(print)
 
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
