@@ -121,27 +121,27 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 
 // Post - utility function to add POST Handler to HandlerGroup
 func (h *HandlerGroup) Post(handler Handler) error {
-	return h.AddHandler("POST", handler)
+	return h.AddHandler(http.MethodPost, handler)
 }
 
 // Put - utility function to add PUT Handler to HandlerGroup
 func (h *HandlerGroup) Put(handler Handler) error {
-	return h.AddHandler("PUT", handler)
+	return h.AddHandler(http.MethodPut, handler)
 }
 
 // Patch - utility function to add PATCH Handler to HandlerGroup
 func (h *HandlerGroup) Patch(handler Handler) error {
-	return h.AddHandler("PATCH", handler)
+	return h.AddHandler(http.MethodPatch, handler)
 }
 
 // Delete - utility function to add DELETE Handler to HandlerGroup
 func (h *HandlerGroup) Delete(handler Handler) error {
-	return h.AddHandler("DELETE", handler)
+	return h.AddHandler(http.MethodDelete, handler)
 }
 
 // Get - utility function to add GET Handler to HandlerGroup
 func (h *HandlerGroup) Get(handler Handler) error {
-	return h.AddHandler("GET", handler)
+	return h.AddHandler(http.MethodGet, handler)
 }
 
 func (h Handler) applyMiddleware(middleware []Middleware) Handler {
