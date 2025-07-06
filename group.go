@@ -196,7 +196,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		if g != nil {
 			h.logger = g
 		} else {
-			h.logger = defaultPrint
+			h.logger = defaultLogger
 		}
 	}
 
