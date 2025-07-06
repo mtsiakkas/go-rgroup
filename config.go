@@ -15,7 +15,7 @@ type globalConfig struct {
 	forwardHTTPStatus                bool
 	forwardLogMessage                bool
 	logger                           func(*RequestData)
-	responsePrewriter                func(*http.Request, *HandlerResponse) *HandlerResponse
+	prewriter                        func(*http.Request, *HandlerResponse) *HandlerResponse
 }
 
 var mtx = sync.RWMutex{}
@@ -28,7 +28,7 @@ var defaultConfig = globalConfig{
 	forwardHTTPStatus:                false,
 	forwardLogMessage:                false,
 	logger:                           nil,
-	responsePrewriter:                nil,
+	prewriter:                        nil,
 }
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
@@ -234,12 +234,12 @@ func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 	return c
 }
 
-// SetResponsePrewriter - self explanatory
-func (c *globalConfig) SetResponsePrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) *globalConfig {
+// SetPrewriter - self explanatory
+func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.responsePrewriter = f
+	c.prewriter = f
 
 	return c
 }

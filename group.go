@@ -204,8 +204,8 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		l := FromRequest(req)
 		res, err := h.serve(w, req)
 
-		if Config.responsePrewriter != nil {
-			res = Config.responsePrewriter(req, res)
+		if Config.prewriter != nil {
+			res = Config.prewriter(req, res)
 		}
 
 		l.Time()

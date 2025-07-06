@@ -580,15 +580,15 @@ func TestPostprocessor(t *testing.T) {
 	})
 }
 
-func TestResponsePrewriter(t *testing.T) {
-	rgroup.Config.SetResponsePrewriter(func(_ *http.Request, a *rgroup.HandlerResponse) *rgroup.HandlerResponse {
+func TestPrewriter(t *testing.T) {
+	rgroup.Config.SetPrewriter(func(_ *http.Request, a *rgroup.HandlerResponse) *rgroup.HandlerResponse {
 		if s, ok := a.Data.(string); ok {
 			a.Data = s + " - prewriter"
 		}
 		return a
 	})
 
-	h := rgroup.NewWithHandlers(rgroup.HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
+	h := rgroup.NewWithHandlers(rgroup.HandlerMap{http.MethodGet: func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 		return rgroup.Response("test"), nil
 	}}).Make()
 
