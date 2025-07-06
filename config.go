@@ -104,8 +104,8 @@ func (c *globalConfig) SetOverwriteMethodBehaviour(o OverwriteMethodBehaviour) e
 	return nil
 }
 
-// GetOverwriteMethod - return current duplicate method setting
-func (c *globalConfig) GetOverwriteMethod() OverwriteMethodBehaviour {
+// GetOverwriteMethodBehaviour - return current duplicate method setting
+func (c *globalConfig) GetOverwriteMethodBehaviour() OverwriteMethodBehaviour {
 	mtx.RLock()
 	defer mtx.RUnlock()
 

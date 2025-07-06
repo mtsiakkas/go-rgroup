@@ -39,8 +39,8 @@ func TestGlobalOverwriteHandler(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		if rgroup.Config.GetOverwriteMethod() != rgroup.OverwriteMethodError {
-			t.Logf("got %s", rgroup.Config.GetOverwriteMethod())
+		if rgroup.Config.GetOverwriteMethodBehaviour() != rgroup.OverwriteMethodError {
+			t.Logf("got %s", rgroup.Config.GetOverwriteMethodBehaviour())
 			t.Fail()
 		}
 	})
