@@ -2,7 +2,6 @@ package rgroup
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -50,20 +49,6 @@ func New() *HandlerGroup {
 // NewWithHandlers creates a new HandlerGroup from a HandlerMap
 // If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
-	if _, ok := handlers[http.MethodOptions]; ok {
-		switch Config.overwriteOptionsHandlerBehaviour {
-		case OverwriteOptionsHandlerPanic:
-			panic("cannot overwrite options handler")
-		case OverwriteOptionsHandlerOverwrite:
-			fmt.Print("overwriting OPTIONS handler")
-		case OverwriteOptionsHandlerIgnore:
-			delete(handlers, http.MethodOptions)
-			fmt.Print("ignoring OPTIONS handler")
-		default:
-			panic(fmt.Sprintf("unknown OptionsHandlerBehaviour option %s", Config.overwriteOptionsHandlerBehaviour))
-		}
-	}
-
 	h := new(HandlerGroup)
 	h.handlers = make(HandlerMap)
 
@@ -97,22 +82,6 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	}
 
 	m := strings.ToUpper(method)
-	if _, ok := h.handlers[m]; ok {
-		switch Config.overwriteMethodBehaviour {
-		case OverwriteMethodPanic:
-			panic("cannot overwrite options handler")
-		case OverwriteMethodIgnore:
-			fmt.Print("ignoring duplicate handler")
-
-			return nil
-		case OverwriteMethodAllow:
-			fmt.Print("overwriting OPTIONS handler")
-		case OverwriteMethodError:
-			return DuplicateMethodExistsError{method: m}
-		default:
-			panic(fmt.Sprintf("unknown DuplicateMethodBehaviour option %d", Config.overwriteMethodBehaviour))
-		}
-	}
 
 	h.handlers[m] = handler
 
@@ -158,18 +127,14 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 	if h.middleware == nil {
 		h.middleware = make([]Middleware, 0)
 	}
+
 	h.middleware = append(h.middleware, m)
 
 	return h
 }
 
 func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
-	if req.Method == http.MethodOptions {
-		// check if custom options handler was provided
-		f, ok := h.handlers[req.Method]
-		if ok && Config.GetOverwriteOptionsHandlerBehaviour() == OverwriteOptionsHandlerOverwrite {
-			return f.applyMiddleware(h.middleware)(w, req)
-		}
+	if _, ok := h.handlers[http.MethodOptions]; !ok && req.Method == http.MethodOptions {
 		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
 
 		return Response(nil), nil
@@ -211,11 +176,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		l.Time()
 
 		defer func() {
-			if req.Method == http.MethodOptions {
-				if Config.logOptions {
-					h.logger(l)
-				}
-			} else {
+			if req.Method != http.MethodOptions || Config.logOptions {
 				h.logger(l)
 			}
 		}()
@@ -260,6 +221,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			if Config.forwardHTTPStatus && (l.Status != http.StatusOK) {
 				w.WriteHeader(l.Status)
 			}
+
 			l.ResponseSize, _ = write(w, env)
 
 			return
@@ -268,6 +230,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		if l.Status != http.StatusOK {
 			w.WriteHeader(l.Status)
 		}
+
 		l.ResponseSize, _ = write(w, res.Data)
 	}
 }
