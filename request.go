@@ -18,6 +18,7 @@ type RequestData struct {
 	IsError      bool
 	ResponseSize int
 	Request      *http.Request
+	time         bool
 }
 
 // FromRequest - generate RequestData struct from http.Request
@@ -31,6 +32,7 @@ func FromRequest(req *http.Request) *RequestData {
 		Message:      "",
 		IsError:      false,
 		ResponseSize: 0,
+		time:         false,
 	}
 
 	return &r
@@ -38,8 +40,9 @@ func FromRequest(req *http.Request) *RequestData {
 
 // Time - calculate request duration
 func (r *RequestData) Time() int64 {
-	if r.Duration == 0 {
+	if !r.time {
 		r.Duration = time.Now().UnixNano() - r.Ts
+		r.time = true
 	}
 
 	return r.Duration
