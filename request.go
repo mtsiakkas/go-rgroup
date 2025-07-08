@@ -46,7 +46,16 @@ func (r *RequestData) Time() int64 {
 }
 
 func (r *RequestData) String() string {
-	dur, units := timeScale(r.Duration)
+
+	dur := float32(r.Duration)
+	i := 0
+	units := []string{"ns", "us", "ms", "s"}
+
+	for dur > 1000 && i < 3 {
+		dur /= 1000
+		i++
+	}
+
 	if r.Message != "" {
 		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units, r.Message)
 	}

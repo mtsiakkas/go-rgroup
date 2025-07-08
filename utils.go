@@ -8,18 +8,6 @@ import (
 	"reflect"
 )
 
-func timeScale(t int64) (float32, string) {
-	dur := float32(t)
-	i := 0
-	units := []string{"ns", "us", "ms", "s"}
-	for dur > 1000 && i < 3 {
-		dur /= 1000
-		i++
-	}
-
-	return dur, units[i]
-}
-
 func defaultLogger(r *RequestData) {
 	printFunc := log.Printf
 	if r.IsError {
