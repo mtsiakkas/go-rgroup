@@ -49,8 +49,7 @@ func (r *RequestData) Time() int64 {
 }
 
 func (r *RequestData) String() string {
-
-	dur := float32(r.Duration)
+	dur := float32(r.Time())
 	i := 0
 	units := []string{"ns", "us", "ms", "s"}
 
