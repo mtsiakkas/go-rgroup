@@ -12,13 +12,13 @@ import (
 type RequestData struct {
 	Path         string
 	Ts           int64
-	Duration     int64
 	Message      string
 	Status       int
 	IsError      bool
 	ResponseSize int
 	Request      *http.Request
 	time         bool
+	duration     int64
 }
 
 // FromRequest - generate RequestData struct from http.Request
@@ -28,28 +28,28 @@ func FromRequest(req *http.Request) *RequestData {
 		Status:       http.StatusOK,
 		Ts:           time.Now().UnixNano(),
 		Request:      req,
-		Duration:     0,
 		Message:      "",
 		IsError:      false,
 		ResponseSize: 0,
 		time:         false,
+		duration:     0,
 	}
 
 	return &r
 }
 
-// Time - calculate request duration
-func (r *RequestData) Time() int64 {
+// Duration - calculate request duration
+func (r *RequestData) Duration() int64 {
 	if !r.time {
-		r.Duration = time.Now().UnixNano() - r.Ts
+		r.duration = time.Now().UnixNano() - r.Ts
 		r.time = true
 	}
 
-	return r.Duration
+	return r.duration
 }
 
 func (r *RequestData) String() string {
-	dur := float32(r.Time())
+	dur := float32(r.Duration())
 	i := 0
 	units := []string{"ns", "us", "ms", "s"}
 

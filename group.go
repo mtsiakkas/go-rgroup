@@ -173,7 +173,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			res = Config.prewriter(req, res)
 		}
 
-		l.Time()
+		l.Duration()
 
 		defer func() {
 			if req.Method != http.MethodOptions || Config.logOptions {
