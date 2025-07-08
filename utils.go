@@ -9,12 +9,11 @@ import (
 )
 
 func defaultLogger(r *RequestData) {
-	printFunc := log.Printf
 	if r.IsError {
-		printFunc = func(s string, args ...any) { log.Printf("\033[31m"+s+"\033[0m", args...) }
+		log.Printf("\033[31m%s\033[0m", r.String())
+	} else {
+		log.Print(r.String())
 	}
-
-	printFunc(r.String())
 }
 
 type writeError struct {
@@ -28,11 +27,9 @@ func write(w http.ResponseWriter, d any) (int, error) {
 
 	switch reflect.TypeOf(d) {
 	case reflect.TypeFor[string]():
-		//nolint
-		return w.Write([]byte(d.(string)))
+		return w.Write([]byte(d.(string))) //nolint
 	case reflect.TypeFor[[]byte]():
-		//nolint
-		return w.Write(d.([]byte))
+		return w.Write(d.([]byte)) //nolint
 	default:
 		dj, err := json.Marshal(d)
 		if err != nil {
