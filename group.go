@@ -193,7 +193,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 			l.Status = me.HTTPStatus
 
-			if Config.envelopeResponse {
+			if Config.envelopeResponse != nil {
 				env := me.ToEnvelope()
 				l.ResponseSize, _ = write(w, env)
 
@@ -215,10 +215,10 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			l.Status = res.HTTPStatus
 		}
 
-		if Config.envelopeResponse && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
+		if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 			env := res.ToEnvelope()
 
-			if Config.forwardHTTPStatus && (l.Status != http.StatusOK) {
+			if Config.envelopeResponse.forwardHTTPStatus && (l.Status != http.StatusOK) {
 				w.WriteHeader(l.Status)
 			}
 

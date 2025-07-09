@@ -11,7 +11,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/mtsiakkas/go-rgroup"
 )
@@ -330,7 +329,6 @@ func TestPostprocessor(t *testing.T) {
 
 		g := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
-				time.Sleep(1 * time.Second)
 				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			},
 		})

@@ -7,23 +7,24 @@ import (
 
 // globalConfig defines all global configuration options
 type globalConfig struct {
-	logOptions        bool
-	envelopeResponse  bool
+	logOptions       bool
+	envelopeResponse *envelopeOptions
+	logger           func(*RequestData)
+	prewriter        func(*http.Request, *HandlerResponse) *HandlerResponse
+}
+
+type envelopeOptions struct {
 	forwardHTTPStatus bool
 	forwardLogMessage bool
-	logger            func(*RequestData)
-	prewriter         func(*http.Request, *HandlerResponse) *HandlerResponse
 }
 
 var mtx = sync.RWMutex{}
 
 var defaultConfig = globalConfig{
-	logOptions:        true,
-	envelopeResponse:  false,
-	forwardHTTPStatus: false,
-	forwardLogMessage: false,
-	logger:            nil,
-	prewriter:         nil,
+	logOptions:       true,
+	envelopeResponse: nil,
+	logger:           nil,
+	prewriter:        nil,
 }
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
@@ -72,7 +73,11 @@ func (c *globalConfig) SetForwardLogMessage(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.forwardLogMessage = b
+	if c.envelopeResponse == nil {
+		c.envelopeResponse = new(envelopeOptions)
+	}
+
+	c.envelopeResponse.forwardLogMessage = b
 
 	return c
 }
@@ -82,7 +87,11 @@ func (c *globalConfig) SetForwardHTTPStatus(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.forwardHTTPStatus = b
+	if c.envelopeResponse == nil {
+		c.envelopeResponse = new(envelopeOptions)
+	}
+
+	c.envelopeResponse.forwardHTTPStatus = b
 
 	return c
 }
@@ -92,7 +101,11 @@ func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
-	c.envelopeResponse = b
+	if b {
+		c.envelopeResponse = new(envelopeOptions)
+	} else {
+		c.envelopeResponse = nil
+	}
 
 	return c
 }

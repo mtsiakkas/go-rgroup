@@ -73,7 +73,7 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 		},
 	}
 
-	if Config.forwardLogMessage && e.Response != "" {
+	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage && e.Response != "" {
 		env.Status.Message = &e.Response
 	}
 
