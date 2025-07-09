@@ -64,16 +64,6 @@ func (h *HandlerGroup) SetPostprocessor(p func(*RequestData)) {
 	h.logger = p
 }
 
-// DuplicateMethodExistsError is a simple error struct indicating that a handler for the
-// specified method already exists in the HandlerGroup
-type DuplicateMethodExistsError struct {
-	method string
-}
-
-func (e DuplicateMethodExistsError) Error() string {
-	return e.method + " handler already set"
-}
-
 // AddHandler adds a new Handler to the HandlerGroup.
 // In case `method` already exists, behaviour is defined by the global config.DuplicateMethod option
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
