@@ -1,7 +1,6 @@
 package rgroup
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,7 +12,7 @@ import (
 type RequestData struct {
 	Timestamp    int64
 	ResponseSize int
-	Error        error
+	Error        *HandlerError
 	Request      http.Request
 	Response     *HandlerResponse
 	time         bool
@@ -51,12 +50,7 @@ func (r *RequestData) Message() string {
 // Status returns the resulting http status sent to the client
 func (r *RequestData) Status() int {
 	if r.Error != nil {
-		me := new(HandlerError)
-		if !errors.As(r.Error, &me) {
-			return http.StatusInternalServerError
-		}
-
-		return me.HTTPStatus
+		return r.Error.HTTPStatus
 	}
 
 	if r.Response != nil {

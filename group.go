@@ -178,7 +178,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 				_ = me.Wrap(err)
 			}
 
-			l.Error = err
+			l.Error = me
 
 			if Config.envelopeResponse != nil {
 				env := me.ToEnvelope()
