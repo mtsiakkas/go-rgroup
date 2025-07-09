@@ -14,14 +14,14 @@ type RequestData struct {
 	Timestamp    int64
 	ResponseSize int
 	Error        error
-	Request      *http.Request
+	Request      http.Request
 	Response     *HandlerResponse
 	time         bool
 	duration     int64
 }
 
 // FromRequest - generate RequestData struct from http.Request
-func FromRequest(req *http.Request) *RequestData {
+func FromRequest(req http.Request) *RequestData {
 	r := RequestData{
 		Timestamp:    time.Now().UnixNano(),
 		Error:        nil,
@@ -68,11 +68,7 @@ func (r *RequestData) Status() int {
 
 // Path returns the base uri of the request
 func (r *RequestData) Path() string {
-	if r.Request != nil {
-		return strings.Split(r.Request.RequestURI, "?")[0]
-	}
-
-	return ""
+	return strings.Split(r.Request.RequestURI, "?")[0]
 }
 
 // Duration - calculate request duration

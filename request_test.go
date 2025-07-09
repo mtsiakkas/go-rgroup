@@ -11,7 +11,7 @@ import (
 func TestRequest(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test?t=1", nil)
 
-	l := rgroup.FromRequest(req)
+	l := rgroup.FromRequest(*req)
 
 	if l.Path() != "/test" || l.Status() != http.StatusOK {
 		t.Logf("unexpected data: %v", l)
