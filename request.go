@@ -11,7 +11,7 @@ import (
 // RequestData - struct containing info about the handled request.
 // Passed to the postprocessor.
 type RequestData struct {
-	Ts           int64
+	Timestamp    int64
 	ResponseSize int
 	Error        error
 	Request      *http.Request
@@ -23,7 +23,7 @@ type RequestData struct {
 // FromRequest - generate RequestData struct from http.Request
 func FromRequest(req *http.Request) *RequestData {
 	r := RequestData{
-		Ts:           time.Now().UnixNano(),
+		Timestamp:    time.Now().UnixNano(),
 		Error:        nil,
 		Request:      req,
 		Response:     nil,
@@ -78,7 +78,7 @@ func (r *RequestData) Path() string {
 // Duration - calculate request duration
 func (r *RequestData) Duration() int64 {
 	if !r.time {
-		r.duration = time.Now().UnixNano() - r.Ts
+		r.duration = time.Now().UnixNano() - r.Timestamp
 		r.time = true
 	}
 
