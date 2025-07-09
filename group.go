@@ -163,9 +163,9 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			res = Config.prewriter(req, res)
 		}
 
-		l.Duration()
-
 		defer func() {
+			l.Duration()
+
 			if req.Method != http.MethodOptions || Config.logOptions {
 				h.logger(l)
 			}
