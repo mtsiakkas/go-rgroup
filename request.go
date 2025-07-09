@@ -1,6 +1,7 @@
 package rgroup
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,13 +11,11 @@ import (
 // RequestData - struct containing info about the handled request.
 // Passed to the postprocessor.
 type RequestData struct {
-	Path         string
 	Ts           int64
-	Message      string
-	Status       int
-	IsError      bool
 	ResponseSize int
+	Error        error
 	Request      *http.Request
+	Response     *HandlerResponse
 	time         bool
 	duration     int64
 }
@@ -24,18 +23,56 @@ type RequestData struct {
 // FromRequest - generate RequestData struct from http.Request
 func FromRequest(req *http.Request) *RequestData {
 	r := RequestData{
-		Path:         strings.Split(req.RequestURI, "?")[0],
-		Status:       http.StatusOK,
 		Ts:           time.Now().UnixNano(),
+		Error:        nil,
 		Request:      req,
-		Message:      "",
-		IsError:      false,
+		Response:     nil,
 		ResponseSize: 0,
 		time:         false,
 		duration:     0,
 	}
 
 	return &r
+}
+
+// Message returns the log message of the request
+func (r *RequestData) Message() string {
+	if r.Error != nil {
+		return r.Error.Error()
+	}
+
+	if r.Response != nil {
+		return r.Response.LogMessage
+	}
+
+	return ""
+}
+
+// Status returns the resulting http status sent to the client
+func (r *RequestData) Status() int {
+	if r.Error != nil {
+		me := new(HandlerError)
+		if !errors.As(r.Error, &me) {
+			return http.StatusInternalServerError
+		}
+
+		return me.HTTPStatus
+	}
+
+	if r.Response != nil {
+		return r.Response.HTTPStatus
+	}
+
+	return http.StatusOK
+}
+
+// Path returns the base uri of the request
+func (r *RequestData) Path() string {
+	if r.Request != nil {
+		return strings.Split(r.Request.RequestURI, "?")[0]
+	}
+
+	return ""
 }
 
 // Duration - calculate request duration
@@ -58,9 +95,9 @@ func (r *RequestData) String() string {
 		i++
 	}
 
-	if r.Message != "" {
-		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status, r.Path, dur, units, r.Message)
+	if r.Message() != "" {
+		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status(), r.Path(), dur, units, r.Message())
 	}
 
-	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status, r.Path, dur, units)
+	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status(), r.Path(), dur, units)
 }

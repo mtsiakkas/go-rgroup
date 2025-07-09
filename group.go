@@ -182,16 +182,13 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		}()
 
 		if err != nil {
-			l.IsError = true
-			l.Message = err.Error()
-
 			me := new(HandlerError)
 			if !errors.As(err, &me) {
 				me.HTTPStatus = http.StatusInternalServerError
 				_ = me.Wrap(err)
 			}
 
-			l.Status = me.HTTPStatus
+			l.Error = err
 
 			if Config.envelopeResponse != nil {
 				env := me.ToEnvelope()
@@ -200,7 +197,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 				return
 			}
 
-			http.Error(w, me.Response, l.Status)
+			http.Error(w, me.Response, l.Status())
 
 			return
 		}
@@ -209,17 +206,13 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			return
 		}
 
-		l.Message = res.LogMessage
-
-		if http.StatusText(res.HTTPStatus) != "" {
-			l.Status = res.HTTPStatus
-		}
+		l.Response = res
 
 		if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 			env := res.ToEnvelope()
 
-			if Config.envelopeResponse.forwardHTTPStatus && (l.Status != http.StatusOK) {
-				w.WriteHeader(l.Status)
+			if Config.envelopeResponse.forwardHTTPStatus && (l.Status() != http.StatusOK) {
+				w.WriteHeader(l.Status())
 			}
 
 			l.ResponseSize, _ = write(w, env)
@@ -227,8 +220,8 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			return
 		}
 
-		if l.Status != http.StatusOK {
-			w.WriteHeader(l.Status)
+		if l.Status() != http.StatusOK {
+			w.WriteHeader(l.Status())
 		}
 
 		l.ResponseSize, _ = write(w, res.Data)

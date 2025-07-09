@@ -13,7 +13,7 @@ func TestRequest(t *testing.T) {
 
 	l := rgroup.FromRequest(req)
 
-	if l.Path != "/test" || l.Status != http.StatusOK {
+	if l.Path() != "/test" || l.Status() != http.StatusOK {
 		t.Logf("unexpected data: %v", l)
 		t.Fail()
 	}

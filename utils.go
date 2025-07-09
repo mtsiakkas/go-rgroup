@@ -9,7 +9,7 @@ import (
 )
 
 func defaultLogger(r *RequestData) {
-	if r.IsError {
+	if r.Error != nil {
 		log.Printf("\033[31m%s\033[0m", r.String())
 	} else {
 		log.Print(r.String())
