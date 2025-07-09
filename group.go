@@ -59,8 +59,8 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	return h
 }
 
-// SetPostprocessor assigns a local postprocessor function to the HandlerGroup
-func (h *HandlerGroup) SetPostprocessor(p func(*RequestData)) {
+// SetLogger assigns a local logger function to the HandlerGroup
+func (h *HandlerGroup) SetLogger(p func(*RequestData)) {
 	h.logger = p
 }
 

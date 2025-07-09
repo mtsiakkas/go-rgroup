@@ -278,7 +278,7 @@ func TestOptions(t *testing.T) {
 	}
 }
 
-func TestPostprocessor(t *testing.T) {
+func TestLogger(t *testing.T) {
 	t.Run("print", func(t *testing.T) {
 		h := rgroup.NewWithHandlers(rgroup.HandlerMap{
 			"GET": func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
@@ -333,7 +333,7 @@ func TestPostprocessor(t *testing.T) {
 			},
 		})
 
-		g.SetPostprocessor(print)
+		g.SetLogger(print)
 
 		h := g.Make()
 
@@ -362,7 +362,7 @@ func TestPostprocessor(t *testing.T) {
 			},
 		})
 
-		g.SetPostprocessor(print)
+		g.SetLogger(print)
 
 		h := g.Make()
 
