@@ -208,7 +208,7 @@ func TestHandler(t *testing.T) {
 			t.Logf("unexpected error: %s", err)
 			t.FailNow()
 		}
-		if !slices.Equal(res, []byte("\n")) {
+		if !slices.Equal(res, []byte("")) {
 			t.Logf("unexpected response: %s", res)
 			t.Fail()
 		}

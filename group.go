@@ -3,7 +3,6 @@ package rgroup
 import (
 	"errors"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
@@ -159,16 +158,13 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		l := fromRequest(*req)
 		res, err := h.serve(w, req)
 
-		if Config.prewriter != nil {
-			res = Config.prewriter(req, res)
-		}
-
 		defer func() {
-			l.Duration()
-
-			if req.Method != http.MethodOptions || Config.logOptions {
-				h.logger(l)
+			if req.Method == http.MethodOptions && !Config.logOptions {
+				return
 			}
+
+			l.Duration()
+			h.logger(l)
 		}()
 
 		if err != nil {
@@ -179,41 +175,16 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			}
 
 			l.Error = me
-
-			if Config.envelopeResponse != nil {
-				env := me.ToEnvelope()
-				l.ResponseSize, _ = write(w, env)
-
-				return
-			}
-
-			http.Error(w, me.Response, l.Status())
+			l.ResponseSize, _ = writeErr(w, me)
 
 			return
 		}
 
-		if res == nil {
-			return
+		if Config.prewriter != nil {
+			res = Config.prewriter(req, res)
 		}
 
 		l.Response = res
-
-		if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
-			env := res.ToEnvelope()
-
-			if Config.envelopeResponse.forwardHTTPStatus && (l.Status() != http.StatusOK) {
-				w.WriteHeader(l.Status())
-			}
-
-			l.ResponseSize, _ = write(w, env)
-
-			return
-		}
-
-		if l.Status() != http.StatusOK {
-			w.WriteHeader(l.Status())
-		}
-
-		l.ResponseSize, _ = write(w, res.Data)
+		l.ResponseSize, _ = writeRes(w, res)
 	}
 }
