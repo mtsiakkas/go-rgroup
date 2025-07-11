@@ -1,17 +1,15 @@
-package rgroup_test
+package rgroup
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/mtsiakkas/go-rgroup"
 )
 
 func TestRequest(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test?t=1", nil)
 
-	l := rgroup.FromRequest(*req)
+	l := fromRequest(*req)
 
 	if l.Path() != "/test" || l.Status() != http.StatusOK {
 		t.Logf("unexpected data: %v", l)

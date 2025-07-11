@@ -19,7 +19,7 @@ type LoggerData struct {
 	duration     int64
 }
 
-func FromRequest(req http.Request) *LoggerData {
+func fromRequest(req http.Request) *LoggerData {
 	r := LoggerData{
 		Timestamp:    time.Now().UnixNano(),
 		Error:        nil,

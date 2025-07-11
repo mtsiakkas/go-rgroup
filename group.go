@@ -156,7 +156,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		l := FromRequest(*req)
+		l := fromRequest(*req)
 		res, err := h.serve(w, req)
 
 		if Config.prewriter != nil {
