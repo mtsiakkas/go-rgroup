@@ -298,7 +298,7 @@ func TestLogger(t *testing.T) {
 	})
 
 	t.Run("global", func(t *testing.T) {
-		print := func(r *rgroup.RequestData) {
+		print := func(r *rgroup.LoggerData) {
 			fmt.Println("global")
 		}
 		rgroup.Config.SetGlobalLogger(print)
@@ -323,7 +323,7 @@ func TestLogger(t *testing.T) {
 	})
 
 	t.Run("global + local", func(t *testing.T) {
-		print := func(r *rgroup.RequestData) {
+		print := func(r *rgroup.LoggerData) {
 			fmt.Println("request complete")
 		}
 
@@ -351,7 +351,7 @@ func TestLogger(t *testing.T) {
 	t.Run("request with context", func(t *testing.T) {
 
 		type ContextKey string
-		print := func(r *rgroup.RequestData) {
+		print := func(r *rgroup.LoggerData) {
 			c := r.Request.Context().Value(ContextKey("test")).(string)
 			fmt.Println("request complete: " + c)
 		}

@@ -9,7 +9,7 @@ import (
 type globalConfig struct {
 	logOptions       bool
 	envelopeResponse *envelopeOptions
-	logger           func(*RequestData)
+	logger           func(*LoggerData)
 	prewriter        func(*http.Request, *HandlerResponse) *HandlerResponse
 }
 
@@ -41,7 +41,7 @@ func (c *globalConfig) Reset() *globalConfig {
 }
 
 // SetGlobalLogger - set global request post processor
-func (c *globalConfig) SetGlobalLogger(p func(*RequestData)) *globalConfig {
+func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -51,7 +51,7 @@ func (c *globalConfig) SetGlobalLogger(p func(*RequestData)) *globalConfig {
 }
 
 // GetGlobalLogger - get global request post processor
-func (c *globalConfig) GetGlobalLogger() func(*RequestData) {
+func (c *globalConfig) GetGlobalLogger() func(*LoggerData) {
 	mtx.RLock()
 	defer mtx.RUnlock()
 

@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-func defaultLogger(r *RequestData) {
+func defaultLogger(r *LoggerData) {
 	if r.Error != nil {
 		log.Printf("\033[31m%s\033[0m", r)
 	} else {

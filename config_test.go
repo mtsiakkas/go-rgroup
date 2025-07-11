@@ -10,7 +10,7 @@ import (
 )
 
 func TestGlobalPostprocessor(t *testing.T) {
-	rgroup.Config.SetGlobalLogger(func(req *rgroup.RequestData) {
+	rgroup.Config.SetGlobalLogger(func(req *rgroup.LoggerData) {
 		fmt.Println("global postprocessor")
 	})
 

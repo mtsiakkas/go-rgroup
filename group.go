@@ -20,7 +20,7 @@ type HandlerMap map[string]Handler
 // HandlerGroup is a structure that contains all Handlers, Middleware and request postprocessor for a route
 type HandlerGroup struct {
 	handlers   HandlerMap
-	logger     func(*RequestData)
+	logger     func(*LoggerData)
 	middleware []Middleware
 }
 
@@ -60,7 +60,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 }
 
 // SetLogger assigns a local logger function to the HandlerGroup
-func (h *HandlerGroup) SetLogger(p func(*RequestData)) {
+func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 	h.logger = p
 }
 

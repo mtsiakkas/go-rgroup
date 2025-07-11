@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-// RequestData - struct containing info about the handled request.
+// LoggerData - struct containing info about the handled request.
 // Passed to the postprocessor.
-type RequestData struct {
+type LoggerData struct {
 	Timestamp    int64
 	ResponseSize int
 	Error        *HandlerError
@@ -19,9 +19,8 @@ type RequestData struct {
 	duration     int64
 }
 
-// FromRequest - generate RequestData struct from http.Request
-func FromRequest(req http.Request) *RequestData {
-	r := RequestData{
+func FromRequest(req http.Request) *LoggerData {
+	r := LoggerData{
 		Timestamp:    time.Now().UnixNano(),
 		Error:        nil,
 		Request:      req,
@@ -35,7 +34,7 @@ func FromRequest(req http.Request) *RequestData {
 }
 
 // Message returns the log message of the request
-func (r *RequestData) Message() string {
+func (r *LoggerData) Message() string {
 	if r.Error != nil {
 		return r.Error.Error()
 	}
@@ -48,7 +47,7 @@ func (r *RequestData) Message() string {
 }
 
 // Status returns the resulting http status sent to the client
-func (r *RequestData) Status() int {
+func (r *LoggerData) Status() int {
 	if r.Error != nil {
 		return r.Error.HTTPStatus
 	}
@@ -61,12 +60,12 @@ func (r *RequestData) Status() int {
 }
 
 // Path returns the base uri of the request
-func (r *RequestData) Path() string {
+func (r *LoggerData) Path() string {
 	return strings.Split(r.Request.RequestURI, "?")[0]
 }
 
 // Duration - calculate request duration
-func (r *RequestData) Duration() int64 {
+func (r *LoggerData) Duration() int64 {
 	if !r.time {
 		r.duration = time.Now().UnixNano() - r.Timestamp
 		r.time = true
@@ -75,7 +74,7 @@ func (r *RequestData) Duration() int64 {
 	return r.duration
 }
 
-func (r *RequestData) String() string {
+func (r *LoggerData) String() string {
 	dur := float32(r.Duration())
 	i := 0
 	units := []string{"ns", "us", "ms", "s"}
