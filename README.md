@@ -1,4 +1,8 @@
 # rgroup
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/mtsiakkas/go-rgroup?logo=go)
+![GitHub Tag](https://img.shields.io/github/v/tag/mtsiakkas/go-rgroup)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/mtsiakkas/go-rgroup/ci.yaml)
+![GitHub License](https://img.shields.io/github/license/mtsiakkas/go-rgroup)
 
 A zero-dependency handler groupping framework for net/http.
 
