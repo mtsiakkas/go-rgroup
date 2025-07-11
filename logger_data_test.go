@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestRequest(t *testing.T) {
+func TestLoggerData(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test?t=1", nil)
 
 	l := fromRequest(*req)
