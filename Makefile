@@ -24,9 +24,10 @@ tag:
 ifeq (, $(shell which git-semver 2>/dev/null))
 	@echo "git-semver is required for tagging"
 else
-	$(eval TAG=$(shell git-semver -target $(TARGET) -prefix v -no-meta))
+	$(eval TAG=$(shell git-semver -match 'v*.*.*' -target $(TARGET) -prefix v -no-meta))
 	@echo $(TAG)
 endif
 
 tag.apply: tag
 	@git tag $(TAG)
+	@git tag -f latest
