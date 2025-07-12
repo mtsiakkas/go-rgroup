@@ -85,8 +85,8 @@ func (r *LoggerData) String() string {
 	}
 
 	if r.Message() != "" {
-		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status(), r.Path(), dur, units, r.Message())
+		return fmt.Sprintf("%s %d %s [%3.1f%s]\n%s", r.Request.Method, r.Status(), r.Path(), dur, units[i], r.Message())
 	}
 
-	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status(), r.Path(), dur, units)
+	return fmt.Sprintf("%s %d %s [%3.1f%s]", r.Request.Method, r.Status(), r.Path(), dur, units[i])
 }
