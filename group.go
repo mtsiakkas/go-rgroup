@@ -2,6 +2,7 @@ package rgroup
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -174,8 +175,13 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 				_ = me.Wrap(err)
 			}
 
+			n, err := writeErr(w, me)
+			if err != nil {
+				fmt.Printf("\033[31m[rgroup] failed to write to client: %s\n\033[0m", err)
+			}
+
 			l.Error = me
-			l.ResponseSize, _ = writeErr(w, me)
+			l.ResponseSize = n
 
 			return
 		}
@@ -184,7 +190,12 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			res = Config.prewriter(req, res)
 		}
 
+		n, err := writeRes(w, res)
+		if err != nil {
+			fmt.Printf("\033[31m[rgroup] failed to write to client: %s\n\033[0m", err)
+		}
+
 		l.Response = res
-		l.ResponseSize, _ = writeRes(w, res)
+		l.ResponseSize = n
 	}
 }
