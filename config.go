@@ -54,14 +54,6 @@ func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	return c
 }
 
-// GetGlobalLogger - get global request post processor
-func (c *globalConfig) GetGlobalLogger() func(*LoggerData) {
-	mtx.RLock()
-	defer mtx.RUnlock()
-
-	return c.logger
-}
-
 // SetLogOptionsRequests - self explanaroty
 func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
 	mtx.Lock()

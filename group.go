@@ -146,7 +146,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	// set handler request postprocessor
 	// local > global > default
 	if h.logger == nil {
-		g := Config.GetGlobalLogger()
+		g := Config.logger
 		if g != nil {
 			h.logger = g
 		} else {

@@ -26,11 +26,5 @@ func TestGlobalPostprocessor(t *testing.T) {
 		t.Fail()
 	}
 
-	p := rgroup.Config.GetGlobalLogger()
-	if p == nil {
-		t.Log("expected not nil global postprocessor")
-		t.Fail()
-	}
-
 	rgroup.Config.SetGlobalLogger(nil)
 }
