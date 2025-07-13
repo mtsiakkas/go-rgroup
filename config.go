@@ -28,9 +28,13 @@ var defaultConfig = globalConfig{
 }
 
 // Config is a global instance of GlobalConfig and holds the global configuration for the package
-var Config = defaultConfig
+var Config globalConfig
 
-// Reset the global config to the default values
+func init() {
+	Config = defaultConfig
+}
+
+// Reset the global config to the default values.
 func (c *globalConfig) Reset() *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
