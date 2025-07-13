@@ -53,7 +53,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h.handlers = make(HandlerMap)
 
 	for k, f := range handlers {
-		_ = h.AddHandler(k, f)
+		h.AddHandler(k, f)
 	}
 
 	return h
@@ -67,6 +67,7 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 // AddHandler adds a new Handler to the HandlerGroup.
 // In case `method` already exists, behaviour is defined by the global config.DuplicateMethod option
 func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
+func (h *HandlerGroup) AddHandler(method string, handler Handler) {
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
 	}
@@ -74,33 +75,31 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
 	m := strings.ToUpper(method)
 
 	h.handlers[m] = handler
-
-	return nil
 }
 
 // Post - utility function to add POST Handler to HandlerGroup
-func (h *HandlerGroup) Post(handler Handler) error {
-	return h.AddHandler(http.MethodPost, handler)
+func (h *HandlerGroup) Post(handler Handler) {
+	h.AddHandler(http.MethodPost, handler)
 }
 
 // Put - utility function to add PUT Handler to HandlerGroup
-func (h *HandlerGroup) Put(handler Handler) error {
-	return h.AddHandler(http.MethodPut, handler)
+func (h *HandlerGroup) Put(handler Handler) {
+	h.AddHandler(http.MethodPut, handler)
 }
 
 // Patch - utility function to add PATCH Handler to HandlerGroup
-func (h *HandlerGroup) Patch(handler Handler) error {
-	return h.AddHandler(http.MethodPatch, handler)
+func (h *HandlerGroup) Patch(handler Handler) {
+	h.AddHandler(http.MethodPatch, handler)
 }
 
 // Delete - utility function to add DELETE Handler to HandlerGroup
-func (h *HandlerGroup) Delete(handler Handler) error {
-	return h.AddHandler(http.MethodDelete, handler)
+func (h *HandlerGroup) Delete(handler Handler) {
+	h.AddHandler(http.MethodDelete, handler)
 }
 
 // Get - utility function to add GET Handler to HandlerGroup
-func (h *HandlerGroup) Get(handler Handler) error {
-	return h.AddHandler(http.MethodGet, handler)
+func (h *HandlerGroup) Get(handler Handler) {
+	h.AddHandler(http.MethodGet, handler)
 }
 
 func (h Handler) applyMiddleware(middleware []Middleware) Handler {

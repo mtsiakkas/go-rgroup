@@ -47,7 +47,7 @@ func TestHandler(t *testing.T) {
 	t.Run("add handler", func(t *testing.T) {
 		g := rgroup.New()
 
-		_ = g.AddHandler(
+		g.AddHandler(
 			"GET", func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("success").WithHTTPStatus(http.StatusAccepted).WithMessage("test message"), nil
 			})
@@ -78,27 +78,27 @@ func TestHandler(t *testing.T) {
 	t.Run("direct add handler", func(t *testing.T) {
 		g := rgroup.New()
 
-		_ = g.Get(
+		g.Get(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("GET").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
-		_ = g.Post(
+		g.Post(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("POST").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
-		_ = g.Patch(
+		g.Patch(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("PATCH").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
-		_ = g.Put(
+		g.Put(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("PUT").WithHTTPStatus(http.StatusAccepted), nil
 			})
 
-		_ = g.Delete(
+		g.Delete(
 			func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 				return rgroup.Response("DELETE").WithHTTPStatus(http.StatusAccepted), nil
 			})
