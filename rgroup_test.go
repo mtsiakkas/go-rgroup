@@ -66,7 +66,7 @@ func TestDefaultLogger(t *testing.T) {
 
 func TestWriteErr(t *testing.T) {
 	rr := httptest.NewRecorder()
-	n, werr := writeErr(rr, nil)
+	n := writeErr(rr, nil)
 	if n != 0 {
 		t.Logf("unexpected message length: %d", n)
 		t.Fail()
@@ -79,12 +79,7 @@ func TestWriteErr(t *testing.T) {
 	rr = httptest.NewRecorder()
 	err := Error(http.StatusNotAcceptable).WithMessage("test error")
 
-	_, werr = writeErr(rr, err)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeErr(rr, err)
 	if rr.Code != http.StatusNotAcceptable {
 		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
 		t.Fail()
@@ -93,12 +88,7 @@ func TestWriteErr(t *testing.T) {
 	err.WithResponse("test response")
 	rr = httptest.NewRecorder()
 
-	_, werr = writeErr(rr, err)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeErr(rr, err)
 	if rr.Body.String() != "test response" {
 		t.Logf("unexpected error message: %s", rr.Body.String())
 		t.Fail()
@@ -107,12 +97,7 @@ func TestWriteErr(t *testing.T) {
 	Config.SetEnvelopeResponse(true)
 	rr = httptest.NewRecorder()
 
-	_, werr = writeErr(rr, err)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeErr(rr, err)
 	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"error\":\"test error\"}}" {
 		t.Logf("unexpected error message: %s", rr.Body.String())
 		t.Fail()
@@ -126,11 +111,7 @@ func TestWriteRes(t *testing.T) {
 
 	res := Response("test data").WithMessage("test message").WithHTTPStatus(http.StatusAccepted)
 
-	_, werr := writeRes(rr, res)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
+	writeRes(rr, res)
 
 	if rr.Code != http.StatusAccepted {
 		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
@@ -138,12 +119,7 @@ func TestWriteRes(t *testing.T) {
 	}
 
 	rr = httptest.NewRecorder()
-	_, werr = writeRes(rr, res)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeRes(rr, res)
 	if rr.Body.String() != "test data" {
 		t.Logf("unexpected response: %s", rr.Body.String())
 		t.Fail()
@@ -151,13 +127,7 @@ func TestWriteRes(t *testing.T) {
 
 	Config.SetEnvelopeResponse(true)
 	rr = httptest.NewRecorder()
-
-	_, werr = writeRes(rr, res)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeRes(rr, res)
 	if rr.Body.String() != "{\"data\":\"test data\",\"status\":{\"http_status\":202}}" {
 		t.Logf("unexpected response: %s", rr.Body.String())
 		t.Fail()
@@ -166,12 +136,7 @@ func TestWriteRes(t *testing.T) {
 	Config.SetForwardHTTPStatus(true)
 	rr = httptest.NewRecorder()
 
-	_, werr = writeRes(rr, res)
-	if werr != nil {
-		t.Logf("unexpected write error: %s", werr)
-		t.Fail()
-	}
-
+	writeRes(rr, res)
 	if rr.Code != http.StatusAccepted {
 		t.Logf("unexpected status code: %d (%s)", rr.Code, http.StatusText(rr.Code))
 		t.Fail()
@@ -187,11 +152,7 @@ func TestWriteRes(t *testing.T) {
 func TestWrite(t *testing.T) {
 	t.Run("string", func(t *testing.T) {
 		rr := httptest.NewRecorder()
-		n, err := write(rr, "test string")
-		if err != nil {
-			t.Logf("unexpected write error: %s", err)
-			t.Fail()
-		}
+		n := write(rr, "test string")
 		if n == 0 {
 			t.Log("no bytes written")
 			t.Fail()
@@ -205,11 +166,7 @@ func TestWrite(t *testing.T) {
 
 	t.Run("bytes", func(t *testing.T) {
 		rr := httptest.NewRecorder()
-		n, err := write(rr, []byte("test string"))
-		if err != nil {
-			t.Logf("unexpected write error: %s", err)
-			t.Fail()
-		}
+		n := write(rr, []byte("test string"))
 		if n == 0 {
 			t.Log("no bytes written")
 			t.Fail()
@@ -228,11 +185,7 @@ func TestWrite(t *testing.T) {
 		}{Data: "test string", Len: 123}
 
 		rr := httptest.NewRecorder()
-		n, err := write(rr, s)
-		if err != nil {
-			t.Logf("unexpected write error: %s", err)
-			t.Fail()
-		}
+		n := write(rr, s)
 		if n == 0 {
 			t.Log("no bytes written")
 			t.Fail()

@@ -3,6 +3,7 @@ package rgroup
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -16,36 +17,28 @@ func defaultLogger(r *LoggerData) {
 	}
 }
 
-type writeError struct {
-	error
-}
-
-func writeErr(w http.ResponseWriter, err *HandlerError) (int, error) {
+func writeErr(w http.ResponseWriter, err *HandlerError) int {
 	if err == nil {
-		return 0, nil
+		return 0
 	}
 
 	if Config.envelopeResponse != nil {
 		env := err.ToEnvelope()
-
 		return write(w, env)
 	}
 
 	w.WriteHeader(err.HTTPStatus)
 
 	if err.Response != "" {
-		n, e := w.Write([]byte(err.Response))
-		if e != nil {
-			return n, writeError{e}
-		}
+		return write(w, []byte(err.Response))
 	}
 
-	return 0, nil
+	return 0
 }
 
-func writeRes(w http.ResponseWriter, res *HandlerResponse) (int, error) {
+func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 	if res == nil {
-		return 0, nil
+		return 0
 	}
 
 	if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
@@ -55,29 +48,19 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) (int, error) {
 			w.WriteHeader(res.HTTPStatus)
 		}
 
-		n, err := write(w, env)
-		if err != nil {
-			return 0, err
-		}
-
-		return n, nil
+		return write(w, env)
 	}
 
 	if res.HTTPStatus != http.StatusOK {
 		w.WriteHeader(res.HTTPStatus)
 	}
 
-	n, err := write(w, res.Data)
-	if err != nil {
-		return 0, err
-	}
-
-	return n, nil
+	return write(w, res.Data)
 }
 
-func write(w http.ResponseWriter, d any) (int, error) {
+func write(w http.ResponseWriter, d any) int {
 	if d == nil {
-		return 0, nil
+		return 0
 	}
 
 	var n int
@@ -85,23 +68,23 @@ func write(w http.ResponseWriter, d any) (int, error) {
 
 	switch reflect.TypeOf(d) {
 	case reflect.TypeFor[string]():
-		n, err = w.Write([]byte(d.(string))) //nolint
+		n, err = w.Write([]byte(d.(string)))
 	case reflect.TypeFor[[]byte]():
-		n, err = w.Write(d.([]byte)) //nolint
+		n, err = w.Write(d.([]byte))
 	default:
 		dj, derr := json.Marshal(d)
 		if derr != nil {
-			return 0, writeError{derr}
+			err = derr
+			break
 		}
-
 		n, err = w.Write(dj)
 	}
 
 	if err != nil {
-		return 0, writeError{err}
+		fmt.Printf("\033[31m[rgroup] failed to write to client: %s\n\033[0m", err)
 	}
 
-	return n, nil
+	return n
 }
 
 func toPtr[T any](t T) *T {
