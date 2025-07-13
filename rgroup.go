@@ -1,4 +1,4 @@
-// Package rgroup - A handler groupper for go
+// A zero-dependency handler groupping framework for net/http.
 package rgroup
 
 import (

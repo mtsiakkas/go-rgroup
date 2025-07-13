@@ -5,7 +5,6 @@ import (
 	"sync"
 )
 
-// globalConfig defines all global configuration options
 type globalConfig struct {
 	logOptions       bool
 	envelopeResponse *envelopeOptions
@@ -27,7 +26,8 @@ var defaultConfig = globalConfig{
 	prewriter:        nil,
 }
 
-// Config is a global instance of GlobalConfig and holds the global configuration for the package
+// Config holds the global configuration for the package.
+// All global configurations are set by calling methods on Config.
 var Config globalConfig
 
 func init() {
@@ -44,7 +44,7 @@ func (c *globalConfig) Reset() *globalConfig {
 	return c
 }
 
-// SetGlobalLogger - set global request post processor
+// Set the global logger function.
 func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -54,7 +54,8 @@ func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	return c
 }
 
-// SetLogOptionsRequests - self explanaroty
+// Call logger function on OPTIONS requests.
+// Default: true
 func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -64,7 +65,9 @@ func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
 	return c
 }
 
-// SetForwardLogMessage - self explanatory
+// Forward the log message to the client.
+// Calling this method automatically enables envelope responses.
+// Default: false
 func (c *globalConfig) SetForwardLogMessage(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -78,7 +81,9 @@ func (c *globalConfig) SetForwardLogMessage(b bool) *globalConfig {
 	return c
 }
 
-// SetForwardHTTPStatus - self explanatory
+// Forward http status code to client.
+// Calling this method automatically enables envelope responses.
+// Default: false
 func (c *globalConfig) SetForwardHTTPStatus(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -92,7 +97,8 @@ func (c *globalConfig) SetForwardHTTPStatus(b bool) *globalConfig {
 	return c
 }
 
-// SetEnvelopeResponse - self explanatory
+// Enable envelope responses.
+// Default: false
 func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
@@ -106,7 +112,8 @@ func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
 	return c
 }
 
-// SetPrewriter - self explanatory
+// Set global prewriter function.
+// This can be used to further process the response before writing to the client.
 func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()

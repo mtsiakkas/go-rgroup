@@ -13,11 +13,11 @@ type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, e
 // Middleware function signature
 type Middleware func(Handler) Handler
 
-// HandlerMap is a wrapper around map[string]Handler
-// Used to simplify HandlerGroup initialization
+// HandlerMap is a wrapper around map[string]Handler.
+// Used to simplify HandlerGroup initialization.
 type HandlerMap map[string]Handler
 
-// HandlerGroup is a structure that contains all Handlers, Middleware and request postprocessor for a route
+// HandlerGroup contains all Handlers, Middleware and the custom logger for a route.
 type HandlerGroup struct {
 	handlers   HandlerMap
 	logger     func(*LoggerData)
@@ -38,7 +38,7 @@ func (h *HandlerGroup) MethodsAllowed() []string {
 	return opts
 }
 
-// New creates a new empty handler group
+// Create a new empty handler group
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
 	h.handlers = make(HandlerMap)
@@ -46,8 +46,7 @@ func New() *HandlerGroup {
 	return h
 }
 
-// NewWithHandlers creates a new HandlerGroup from a HandlerMap
-// If handlers contains an options key then behaviour is defined by the global OptionsHandlerBehaviour option
+// Creates a new HandlerGroup from a HandlerMap.
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h := new(HandlerGroup)
 	h.handlers = make(HandlerMap)
@@ -59,14 +58,13 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	return h
 }
 
-// SetLogger assigns a local logger function to the HandlerGroup
+// Set a local logger function to the HandlerGroup.
+// This will replace the global logger for the specified route.
 func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 	h.logger = p
 }
 
-// AddHandler adds a new Handler to the HandlerGroup.
-// In case `method` already exists, behaviour is defined by the global config.DuplicateMethod option
-func (h *HandlerGroup) AddHandler(method string, handler Handler) error {
+// Adds a new Handler to the HandlerGroup.
 func (h *HandlerGroup) AddHandler(method string, handler Handler) {
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
@@ -77,27 +75,27 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) {
 	h.handlers[m] = handler
 }
 
-// Post - utility function to add POST Handler to HandlerGroup
+// Utility function to add POST Handler to HandlerGroup
 func (h *HandlerGroup) Post(handler Handler) {
 	h.AddHandler(http.MethodPost, handler)
 }
 
-// Put - utility function to add PUT Handler to HandlerGroup
+// Utility function to add PUT Handler to HandlerGroup
 func (h *HandlerGroup) Put(handler Handler) {
 	h.AddHandler(http.MethodPut, handler)
 }
 
-// Patch - utility function to add PATCH Handler to HandlerGroup
+// Utility function to add PATCH Handler to HandlerGroup
 func (h *HandlerGroup) Patch(handler Handler) {
 	h.AddHandler(http.MethodPatch, handler)
 }
 
-// Delete - utility function to add DELETE Handler to HandlerGroup
+// Utility function to add DELETE Handler to HandlerGroup
 func (h *HandlerGroup) Delete(handler Handler) {
 	h.AddHandler(http.MethodDelete, handler)
 }
 
-// Get - utility function to add GET Handler to HandlerGroup
+// Utility function to add GET Handler to HandlerGroup
 func (h *HandlerGroup) Get(handler Handler) {
 	h.AddHandler(http.MethodGet, handler)
 }
@@ -137,7 +135,7 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 	return nil, Error(http.StatusMethodNotAllowed)
 }
 
-// Make generates an http.HandlerFunc from the HandlerGroup
+// Generates an http.HandlerFunc from the HandlerGroup.
 func (h *HandlerGroup) Make() http.HandlerFunc {
 	if len(h.handlers) == 0 {
 		return func(_ http.ResponseWriter, _ *http.Request) {}

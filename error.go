@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Error - Create new HandlerError with code
+// Create new HandlerError with the specified http status code.
 func Error(code int) *HandlerError {
 	e := HandlerError{
 		HTTPStatus: code,
@@ -16,7 +16,7 @@ func Error(code int) *HandlerError {
 	return &e
 }
 
-// HandlerError - error struct that can be used to return additional info on Handler error
+// Error struct that can be used to return additional info on Handler error
 type HandlerError struct {
 	err        error
 	LogMessage string
@@ -24,14 +24,15 @@ type HandlerError struct {
 	HTTPStatus int
 }
 
-// WithMessage - add log message
+// Add a log message to the HandlerError.
+// This message is not sent to the client.
 func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 	e.LogMessage = fmt.Sprintf(message, args...)
 
 	return e
 }
 
-// WithResponse - add response to be send to the client
+// Add response to the HandlerError to be send to the client.
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
 
@@ -50,7 +51,6 @@ func (e *HandlerError) Error() string {
 	return e.LogMessage
 }
 
-// Wrap - wrap error
 func (e *HandlerError) Wrap(err error) *HandlerError {
 	e.err = err
 
@@ -61,8 +61,7 @@ func (e *HandlerError) Unwrap() error {
 	return e.err
 }
 
-// ToEnvelope - create Envelope from error.
-// Used when config.EnvelopeResponse is set.
+// Create Envelope from error.
 func (e *HandlerError) ToEnvelope() *Envelope {
 	env := Envelope{
 		Data: nil,
@@ -72,7 +71,6 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 			Error:      toPtr(e.Error()),
 		},
 	}
-
 	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage && e.Response != "" {
 		env.Status.Message = &e.Response
 	}

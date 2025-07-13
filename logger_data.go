@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-// LoggerData - struct containing info about the handled request.
-// Passed to the postprocessor.
 type LoggerData struct {
 	Timestamp    int64
 	ResponseSize int
@@ -33,7 +31,8 @@ func fromRequest(req http.Request) *LoggerData {
 	return &r
 }
 
-// Message returns the log message of the request
+// Message returns the log message of the request.
+// If both Error and Response are nil, it returns an empty string.
 func (r *LoggerData) Message() string {
 	if r.Error != nil {
 		return r.Error.Error()
@@ -46,7 +45,8 @@ func (r *LoggerData) Message() string {
 	return ""
 }
 
-// Status returns the resulting http status sent to the client
+// Status returns the resulting http status sent to the client.
+// If both Error and Response are nil, it returns 200 OK.
 func (r *LoggerData) Status() int {
 	if r.Error != nil {
 		return r.Error.HTTPStatus
@@ -59,12 +59,13 @@ func (r *LoggerData) Status() int {
 	return http.StatusOK
 }
 
-// Path returns the base uri of the request
+// Path returns the base uri of the request.
 func (r *LoggerData) Path() string {
 	return strings.Split(r.Request.RequestURI, "?")[0]
 }
 
-// Duration - calculate request duration
+// Duration returns the time taken to handle the request.
+// This method is idempotent; the duration is calculated and stored on first call.
 func (r *LoggerData) Duration() int64 {
 	if !r.time {
 		r.duration = time.Now().UnixNano() - r.Timestamp

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Response - Create new HandlerResponse with data
+// Create new HandlerResponse with data.
 func Response(data any) *HandlerResponse {
 	res := HandlerResponse{
 		Data:       data,
@@ -16,29 +16,27 @@ func Response(data any) *HandlerResponse {
 	return &res
 }
 
-// HandlerResponse - Handler return type on success
 type HandlerResponse struct {
 	Data       any
 	HTTPStatus int
 	LogMessage string
 }
 
-// WithHTTPStatus - set HTTP status code
+// Set HTTP status code
 func (r *HandlerResponse) WithHTTPStatus(code int) *HandlerResponse {
 	r.HTTPStatus = code
 
 	return r
 }
 
-// WithMessage - set log message
+// Set log message
 func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerResponse {
 	r.LogMessage = fmt.Sprintf(message, args...)
 
 	return r
 }
 
-// ToEnvelope - create Envelope from response.
-// Used when config.EnvelopeResponse is set.
+// Create Envelope from response.
 func (r *HandlerResponse) ToEnvelope() *Envelope {
 	e := Envelope{
 		Data: r.Data,
@@ -56,14 +54,14 @@ func (r *HandlerResponse) ToEnvelope() *Envelope {
 	return &e
 }
 
-// EnvelopeStatus - status type for Envelope
+// Status struct for Envelope
 type EnvelopeStatus struct {
 	HTTPStatus int     `json:"http_status"`
 	Message    *string `json:"message,omitempty"`
 	Error      *string `json:"error,omitempty"`
 }
 
-// Envelope - client response struct when config.EnvelopeResponse is set
+// Client response struct when config.EnvelopeResponse is set
 type Envelope struct {
 	Data   any            `json:"data,omitempty"`
 	Status EnvelopeStatus `json:"status"`
