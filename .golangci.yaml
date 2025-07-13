@@ -1,34 +1,10 @@
 version: "2"
 
 linters:
-  default: all
-
   exclusions:
     paths:
       - examples
-
-  disable:
-    - wsl
-    - varnamelen
-    - gochecknoglobals
-    - godot
-    - gocognit
-    - cyclop
-    - funlen
-    - funcorder
-    - nestif
-    - tagliatelle
-    - forbidigo
-    - copyloopvar
-    - intrange
-
-  settings:
-
-    nilnil:
-      detect-opposite: true
-
 run:
   timeout: 5m
   tests: false
   allow-parallel-runners: true
-
