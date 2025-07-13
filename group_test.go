@@ -97,9 +97,18 @@ func TestOptions(t *testing.T) {
 		t.Logf("unexpected options response: %s", rr.Body.String())
 		t.Fail()
 	}
-	if rr.Header().Get("Allow") != "OPTIONS,GET,POST" {
+
+	opts = strings.Split(rr.Header().Get("Allow"), ",")
+	if len(opts) != 3 {
 		t.Logf("unexpected options header: %s", rr.Header().Get("Allow"))
 		t.Fail()
+	}
+
+	for _, m := range []string{http.MethodGet, http.MethodOptions, http.MethodPost} {
+		if !slices.Contains(opts, m) {
+			t.Logf("unexpected opts: %s", opts)
+			t.Fail()
+		}
 	}
 
 	g.AddHandler(http.MethodOptions, func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
