@@ -1,25 +1,23 @@
-package rgroup_test
+package rgroup
 
 import (
 	"errors"
 	"net/http"
 	"testing"
-
-	"github.com/mtsiakkas/go-rgroup"
 )
 
 func TestError(t *testing.T) {
-	e := rgroup.Error(http.StatusInternalServerError)
-	if !errorCompare(rgroup.HandlerError{
+	e := Error(http.StatusInternalServerError)
+	if !errorCompare(HandlerError{
 		LogMessage: "",
 		HTTPStatus: http.StatusInternalServerError,
 	}, *e) {
-		t.Log("rgroup.Error() failed")
+		t.Log("Error() failed")
 		t.Fail()
 	}
 
 	_ = e.WithMessage("test error: %s", "test message")
-	if !errorCompare(rgroup.HandlerError{
+	if !errorCompare(HandlerError{
 		LogMessage: "test error: test message",
 		HTTPStatus: http.StatusInternalServerError,
 	}, *e) {
@@ -28,7 +26,7 @@ func TestError(t *testing.T) {
 	}
 
 	_ = e.WithResponse("test error: %s", "test response")
-	if !errorCompare(rgroup.HandlerError{
+	if !errorCompare(HandlerError{
 		LogMessage: "test error: test message",
 		Response:   "test error: test response",
 		HTTPStatus: http.StatusInternalServerError,
@@ -37,8 +35,30 @@ func TestError(t *testing.T) {
 		t.Fail()
 	}
 
+	Config.SetForwardLogMessage(true)
+	env := e.ToEnvelope()
+	switch {
+	case env.Status.Message == nil:
+		t.Logf("expected env.Status.Message not nil")
+		t.Fail()
+	case *env.Status.Error != e.Error():
+		t.Logf("unexpected error: %s", *env.Status.Error)
+		t.Fail()
+	case *env.Status.Message != e.Response:
+		t.Logf("unexpected message: %s", *env.Status.Message)
+		t.Fail()
+	case env.Status.HTTPStatus != http.StatusInternalServerError:
+		t.Logf("unexpected status code: %d", env.Status.HTTPStatus)
+		t.Fail()
+	}
+
 	etmp := errors.New("error")
-	e2 := rgroup.Error(http.StatusInternalServerError).WithMessage("test").Wrap(etmp)
+	e2 := Error(http.StatusInternalServerError).Wrap(etmp)
+	if e2.Error() != "error" {
+		t.Logf("unexpected error message: \"%s\"", e2)
+		t.Fail()
+	}
+	e2.WithMessage("test")
 	if e2.Error() != "test: error" {
 		t.Logf("unexpected error message: \"%s\"", e2)
 		t.Fail()
@@ -48,9 +68,12 @@ func TestError(t *testing.T) {
 		t.Logf("unexpected error unwrap: \"%s\"", e2.Unwrap())
 		t.Fail()
 	}
+
+	Config.Reset()
+
 }
 
-func errorCompare(e1 rgroup.HandlerError, e2 rgroup.HandlerError) bool {
+func errorCompare(e1 HandlerError, e2 HandlerError) bool {
 	return e1.Response == e2.Response &&
 		e1.HTTPStatus == e2.HTTPStatus &&
 		e1.LogMessage == e2.LogMessage
