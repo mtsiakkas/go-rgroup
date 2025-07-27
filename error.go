@@ -77,7 +77,7 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 	}
 
 	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage {
-		env.Status.Message = &e.LogMessage
+		env.Status.Message = toPtr(e.Error())
 	}
 
 	return &env
