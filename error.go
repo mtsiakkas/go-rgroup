@@ -2,6 +2,7 @@ package rgroup
 
 import (
 	"fmt"
+	"net/http"
 )
 
 // Create new HandlerError with the specified http status code.
@@ -74,6 +75,13 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 
 	if e.Response != "" {
 		env.Status.Error = &e.Response
+	} else {
+		statusText := http.StatusText(e.HTTPStatus)
+		if statusText != "" {
+			env.Status.Error = &statusText
+		} else {
+			env.Status.Error = toPtr("unkown error")
+		}
 	}
 
 	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage {
