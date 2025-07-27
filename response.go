@@ -11,6 +11,7 @@ func Response(data any) *HandlerResponse {
 		Data:       data,
 		HTTPStatus: http.StatusOK,
 		LogMessage: "",
+		Headers:    map[string]string{},
 	}
 
 	return &res
@@ -20,6 +21,7 @@ type HandlerResponse struct {
 	Data       any
 	HTTPStatus int
 	LogMessage string
+	Headers    map[string]string
 }
 
 // Set HTTP status code
@@ -32,6 +34,18 @@ func (r *HandlerResponse) WithHTTPStatus(code int) *HandlerResponse {
 // Set log message
 func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerResponse {
 	r.LogMessage = fmt.Sprintf(message, args...)
+
+	return r
+}
+
+func (r *HandlerResponse) WithHeader(header string, value string) *HandlerResponse {
+	r.Headers[header] = value
+
+	return r
+}
+
+func (r *HandlerResponse) DeleteHeader(header string) *HandlerResponse {
+	delete(r.Headers, header)
 
 	return r
 }

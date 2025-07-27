@@ -36,6 +36,18 @@ func TestResponse(t *testing.T) {
 		t.Fail()
 	}
 
+	r.WithHeader("X-TEST", "test")
+	if v, ok := r.Headers["X-TEST"]; !ok || v != "test" {
+		t.Logf("failed to set header")
+		t.Fail()
+	}
+
+	r.DeleteHeader("X-TEST")
+	if _, ok := r.Headers["X-TEST"]; ok {
+		t.Logf("failed to delete header")
+		t.Fail()
+	}
+
 	Config.SetEnvelopeResponse(true)
 	Config.SetForwardLogMessage(true)
 

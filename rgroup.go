@@ -41,6 +41,12 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 		return 0
 	}
 
+	if len(res.Headers) > 0 {
+		for h, v := range res.Headers {
+			w.Header().Add(h, v)
+		}
+	}
+
 	if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
 		env := res.ToEnvelope()
 

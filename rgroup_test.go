@@ -118,7 +118,11 @@ func TestWriteErr(t *testing.T) {
 func TestWriteRes(t *testing.T) {
 	rr := httptest.NewRecorder()
 
-	res := Response("test data").WithMessage("test message").WithHTTPStatus(http.StatusAccepted)
+	res := Response("test data").
+		WithMessage("test message").
+		WithHTTPStatus(http.StatusAccepted).
+		WithHeader("X-Test-1", "test1").
+		WithHeader("X-Test-2", "test2")
 
 	writeRes(rr, res)
 
@@ -126,11 +130,14 @@ func TestWriteRes(t *testing.T) {
 		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
 		t.Fail()
 	}
-
-	rr = httptest.NewRecorder()
-	writeRes(rr, res)
 	if rr.Body.String() != "test data" {
 		t.Logf("unexpected response: %s", rr.Body.String())
+		t.Fail()
+	}
+	if rr.Header().Get("X-Test-1") != "test1" || rr.Header().Get("X-Test-2") != "test2" {
+		t.Log("unexpected headers:")
+		t.Logf("X-Test-1: %s", rr.Header().Get("X-Test-1"))
+		t.Logf("X-Test-2: %s", rr.Header().Get("X-Test-2"))
 		t.Fail()
 	}
 
