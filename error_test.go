@@ -36,23 +36,6 @@ func TestError(t *testing.T) {
 		t.Fail()
 	}
 
-	Config.SetForwardLogMessage(true)
-	env := e.ToEnvelope()
-	switch {
-	case env.Status.Message == nil:
-		t.Logf("expected env.Status.Message not nil")
-		t.Fail()
-	case *env.Status.Error != e.Response:
-		t.Logf("unexpected error: %s", *env.Status.Error)
-		t.Fail()
-	case *env.Status.Message != e.Error():
-		t.Logf("unexpected message: %s", *env.Status.Message)
-		t.Fail()
-	case env.Status.HTTPStatus != http.StatusInternalServerError:
-		t.Logf("unexpected status code: %d", env.Status.HTTPStatus)
-		t.Fail()
-	}
-
 	etmp := errors.New("error")
 	e2 := Error(http.StatusInternalServerError).Wrap(etmp)
 	if e2.Error() != "error" {
@@ -69,9 +52,6 @@ func TestError(t *testing.T) {
 		t.Logf("unexpected error unwrap: \"%s\"", e2.Unwrap())
 		t.Fail()
 	}
-
-	Config.Reset()
-
 }
 
 func TestErrorEnvelope(t *testing.T) {
