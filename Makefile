@@ -33,4 +33,4 @@ endif
 
 .PHONY: tag.apply
 tag.apply: tag
-	@git tag $(TAG)
+	@git tag -s $(TAG) -m $(TAG)
