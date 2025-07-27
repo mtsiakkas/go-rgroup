@@ -98,7 +98,16 @@ func TestWriteErr(t *testing.T) {
 	rr = httptest.NewRecorder()
 
 	writeErr(rr, err)
-	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"error\":\"test error\"}}" {
+	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"error\":\"test response\"}}" {
+		t.Logf("unexpected error message: %s", rr.Body.String())
+		t.Fail()
+	}
+
+	Config.SetForwardLogMessage(true)
+	rr = httptest.NewRecorder()
+
+	writeErr(rr, err)
+	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"message\":\"test error\",\"error\":\"test response\"}}" {
 		t.Logf("unexpected error message: %s", rr.Body.String())
 		t.Fail()
 	}

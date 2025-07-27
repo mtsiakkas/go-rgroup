@@ -68,11 +68,16 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 		Status: EnvelopeStatus{
 			HTTPStatus: e.HTTPStatus,
 			Message:    nil,
-			Error:      toPtr(e.Error()),
+			Error:      nil,
 		},
 	}
-	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage && e.Response != "" {
-		env.Status.Message = &e.Response
+
+	if e.Response != "" {
+		env.Status.Error = &e.Response
+	}
+
+	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage {
+		env.Status.Message = &e.LogMessage
 	}
 
 	return &env

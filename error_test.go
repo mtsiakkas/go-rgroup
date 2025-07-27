@@ -41,10 +41,10 @@ func TestError(t *testing.T) {
 	case env.Status.Message == nil:
 		t.Logf("expected env.Status.Message not nil")
 		t.Fail()
-	case *env.Status.Error != e.Error():
+	case *env.Status.Error != e.Response:
 		t.Logf("unexpected error: %s", *env.Status.Error)
 		t.Fail()
-	case *env.Status.Message != e.Response:
+	case *env.Status.Message != e.Error():
 		t.Logf("unexpected message: %s", *env.Status.Message)
 		t.Fail()
 	case env.Status.HTTPStatus != http.StatusInternalServerError:
