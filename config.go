@@ -10,6 +10,7 @@ type globalConfig struct {
 	envelopeResponse *envelopeOptions
 	logger           func(*LoggerData)
 	prewriter        func(*http.Request, *HandlerResponse) *HandlerResponse
+	lockOnMake       bool
 }
 
 type envelopeOptions struct {
@@ -24,6 +25,7 @@ var defaultConfig = globalConfig{
 	envelopeResponse: nil,
 	logger:           nil,
 	prewriter:        nil,
+	lockOnMake:       true,
 }
 
 // Config holds the global configuration for the package.
@@ -121,4 +123,18 @@ func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *Han
 	c.prewriter = f
 
 	return c
+}
+
+var lockOnMakeOnce sync.Once
+
+// Lock HandlerGroup after the first call to HandlerGroup.Make.
+// Can only be called once.
+// Default: true
+func (c *globalConfig) LockOnMake(b bool) {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	lockOnMakeOnce.Do(func() {
+		c.lockOnMake = b
+	})
 }

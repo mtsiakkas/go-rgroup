@@ -94,3 +94,81 @@ func TestEnvelopeConfig(t *testing.T) {
 
 	Config.Reset()
 }
+
+func TestLockOnMake(t *testing.T) {
+	t.Run("lock", func(t *testing.T) {
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return Response("test"), nil
+		})
+		h := g.Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b := rr.Body.String()
+		if b != "test" {
+			t.Logf("unexpected response: %s", b)
+			t.Fail()
+		}
+
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return Response("changed"), nil
+		})
+
+		h2 := g.Make()
+
+		rr = httptest.NewRecorder()
+		req = httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h2(rr, req)
+
+		b2 := rr.Body.String()
+		if b2 != "test" {
+			t.Logf("unexpected response: %s", b2)
+			t.Fail()
+		}
+	})
+
+	t.Run("unlock", func(t *testing.T) {
+		Config.LockOnMake(false)
+
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return Response("test"), nil
+		})
+		h := g.Make()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h(rr, req)
+
+		b := rr.Body.String()
+		if b != "test" {
+			t.Logf("unexpected response: %s", b)
+			t.Fail()
+		}
+
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return Response("changed"), nil
+		})
+
+		h2 := g.Make()
+
+		rr = httptest.NewRecorder()
+		req = httptest.NewRequest(http.MethodGet, "/", nil)
+
+		h2(rr, req)
+
+		b2 := rr.Body.String()
+		if b2 != "changed" {
+			t.Logf("unexpected response: %s", b2)
+			t.Fail()
+		}
+		Config.lockOnMake = true
+	})
+
+}

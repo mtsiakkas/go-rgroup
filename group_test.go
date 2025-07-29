@@ -71,6 +71,9 @@ func TestAddHandlers(t *testing.T) {
 }
 
 func TestOptions(t *testing.T) {
+	Config.lockOnMake = false
+	defer func() { Config.lockOnMake = true }()
+
 	g := New()
 	g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) { return Response("GET"), nil })
 	g.Post(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) { return Response("POST"), nil })
@@ -142,6 +145,9 @@ func TestOptions(t *testing.T) {
 }
 
 func TestEmptyGroup(t *testing.T) {
+	Config.lockOnMake = false
+	defer func() { Config.lockOnMake = true }()
+
 	g := HandlerGroup{}
 	h := g.Make()
 

@@ -18,6 +18,7 @@ type HandlerMap map[string]Handler
 
 // HandlerGroup contains all Handlers, Middleware and the custom logger for a route.
 type HandlerGroup struct {
+	h          http.HandlerFunc
 	handlers   HandlerMap
 	logger     func(*LoggerData)
 	middleware []Middleware
@@ -65,6 +66,10 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 
 // Adds a new Handler to the HandlerGroup.
 func (h *HandlerGroup) AddHandler(method string, handler Handler) {
+	if Config.lockOnMake && h.h != nil {
+		return
+	}
+
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
 	}
@@ -110,6 +115,10 @@ func (h Handler) applyMiddleware(middleware []Middleware) Handler {
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
 func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
+	if Config.lockOnMake && h.h != nil {
+		return h
+	}
+
 	if h.middleware == nil {
 		h.middleware = make([]Middleware, 0)
 	}
@@ -136,8 +145,13 @@ func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*Handler
 
 // Generates an http.HandlerFunc from the HandlerGroup.
 func (h *HandlerGroup) Make() http.HandlerFunc {
+	if Config.lockOnMake && h.h != nil {
+		return h.h
+	}
+
 	if len(h.handlers) == 0 {
-		return func(_ http.ResponseWriter, _ *http.Request) {}
+		h.h = func(_ http.ResponseWriter, _ *http.Request) {}
+		return h.h
 	}
 
 	// set handler request postprocessor
@@ -151,7 +165,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		}
 	}
 
-	return func(w http.ResponseWriter, req *http.Request) {
+	h.h = func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
 		res, err := h.serve(w, req)
 
@@ -188,6 +202,8 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		l.Response = res
 		l.ResponseSize = n
 	}
+
+	return h.h
 }
 
 func (h *HandlerGroup) ServeHTTP(w http.ResponseWriter, req *http.Request) {
