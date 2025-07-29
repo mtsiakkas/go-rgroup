@@ -51,6 +51,10 @@ func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	mtx.Lock()
 	defer mtx.Unlock()
 
+	if p == nil {
+		p = func(l *LoggerData) {}
+	}
+
 	c.logger = p
 
 	return c
