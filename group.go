@@ -167,12 +167,10 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		}
 
 		defer func() {
-			if req.Method == http.MethodOptions && !Config.logOptions {
-				return
+			if req.Method != http.MethodOptions || Config.logOptions {
+				l.Duration()
+				h.logger(l)
 			}
-
-			l.Duration()
-			h.logger(l)
 		}()
 
 		if err != nil {
@@ -204,6 +202,5 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 }
 
 func (h *HandlerGroup) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	handler := h.Make()
-	handler(w, req)
+	h.Make()(w, req)
 }
