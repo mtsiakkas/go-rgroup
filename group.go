@@ -128,21 +128,6 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 	return h
 }
 
-func (h *HandlerGroup) serve(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
-	if _, ok := h.handlers[http.MethodOptions]; !ok && req.Method == http.MethodOptions {
-		w.Header().Set("Allow", strings.Join(h.MethodsAllowed(), ","))
-
-		return Response(nil), nil
-	}
-
-	if f, ok := h.handlers[req.Method]; ok {
-		// apply middleware
-		return f.applyMiddleware(h.middleware)(w, req)
-	}
-	// if method is not found in group, return MethodNotAllowed error
-	return nil, Error(http.StatusMethodNotAllowed)
-}
-
 // Generates an http.HandlerFunc from the HandlerGroup.
 func (h *HandlerGroup) Make() http.HandlerFunc {
 	if Config.lockOnMake && h.h != nil {
@@ -167,7 +152,19 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 	h.h = func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
-		res, err := h.serve(w, req)
+
+		var res *HandlerResponse
+		var err error
+
+		f, ok := h.handlers[req.Method]
+		switch {
+		case ok:
+			res, err = f.applyMiddleware(h.middleware)(w, req)
+		case !ok && req.Method == http.MethodOptions:
+			res = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
+		default:
+			err = Error(http.StatusMethodNotAllowed)
+		}
 
 		defer func() {
 			if req.Method == http.MethodOptions && !Config.logOptions {
