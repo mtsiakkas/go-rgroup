@@ -33,9 +33,7 @@ group.Post( func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, er
    return nil, rgroup.Error(http.StatusNotImplemented).WithMessage("TODO")
 })
 
-handler := group.Make()
-
-router.Handle("/",handler)
+router.Handle("/", group)
 ```
 
 The route definition can be inlined using `rgroup.NewWithHandlers(...)`
@@ -47,7 +45,7 @@ router := http.NewServeMux().Handle("/", rgroup.NewWithHandlers(rgroup.HandlerMa
     http.MethodPost:  func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
        return rgroup.Response("Hello World!"), nil
     },
-}).Make())
+}))
 ```
 
 # Configuration
