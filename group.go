@@ -6,9 +6,6 @@ import (
 	"strings"
 )
 
-// Handler function signuture
-type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
-
 // Middleware function signature
 type Middleware func(Handler) Handler
 
@@ -102,15 +99,6 @@ func (h *HandlerGroup) Delete(handler Handler) {
 // Utility function to add GET Handler to HandlerGroup
 func (h *HandlerGroup) Get(handler Handler) {
 	h.AddHandler(http.MethodGet, handler)
-}
-
-func (h Handler) applyMiddleware(middleware []Middleware) Handler {
-	f := h
-	for _, m := range middleware {
-		f = m(f)
-	}
-
-	return f
 }
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
