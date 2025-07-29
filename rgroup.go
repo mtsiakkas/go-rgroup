@@ -9,9 +9,14 @@ import (
 	"reflect"
 )
 
+const (
+	red   = "\033[31m"
+	reset = "\033[0m"
+)
+
 func defaultLogger(r *LoggerData) {
 	if r.Error != nil {
-		log.Printf("\033[31m%s\033[0m", r)
+		log.Printf("%s%s%s", red, r, reset)
 	} else {
 		log.Println(r)
 	}
@@ -87,7 +92,7 @@ func write(w http.ResponseWriter, d any) int {
 	}
 
 	if err != nil {
-		fmt.Printf("\033[31m[rgroup] failed to write to client: %s\n\033[0m", err)
+		fmt.Printf("%s[rgroup] failed to write to client: %s\n%s", red, err, reset)
 	}
 
 	return n
