@@ -3,6 +3,7 @@ package rgroup
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -95,6 +96,39 @@ func write(w http.ResponseWriter, d any) int {
 	}
 
 	return n
+}
+
+func logAndWrite(w http.ResponseWriter, l *LoggerData, logger func(*LoggerData)) {
+
+	defer func() {
+		if (l.Request.Method != http.MethodOptions || Config.logOptions) && logger != nil {
+			l.Duration()
+			logger(l)
+		}
+	}()
+
+	if l.err != nil {
+		me := new(HandlerError)
+		if !errors.As(l.err, &me) {
+			me.HTTPStatus = http.StatusInternalServerError
+			_ = me.Wrap(l.err)
+		}
+
+		n := writeErr(w, me)
+
+		l.Error = me
+		l.ResponseSize = n
+
+		return
+	}
+
+	if Config.prewriter != nil {
+		l.Response = Config.prewriter(&l.Request, l.Response)
+	}
+
+	n := writeRes(w, l.Response)
+
+	l.ResponseSize = n
 }
 
 func toPtr[T any](t T) *T {
