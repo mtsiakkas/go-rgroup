@@ -1,7 +1,6 @@
 package rgroup
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 )
@@ -138,52 +137,22 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		}
 	}
 
+	logger := h.logger
+
 	h.h = func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
-
-		var res *HandlerResponse
-		var err error
 
 		f, ok := h.handlers[req.Method]
 		switch {
 		case ok:
-			res, err = f.applyMiddleware(h.middleware)(w, req)
+			l.Response, l.err = f.applyMiddleware(h.middleware)(w, req)
 		case !ok && req.Method == http.MethodOptions:
-			res = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
+			l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
 		default:
-			err = Error(http.StatusMethodNotAllowed)
+			l.err = Error(http.StatusMethodNotAllowed)
 		}
 
-		defer func() {
-			if req.Method != http.MethodOptions || Config.logOptions {
-				l.Duration()
-				h.logger(l)
-			}
-		}()
-
-		if err != nil {
-			me := new(HandlerError)
-			if !errors.As(err, &me) {
-				me.HTTPStatus = http.StatusInternalServerError
-				_ = me.Wrap(err)
-			}
-
-			n := writeErr(w, me)
-
-			l.Error = me
-			l.ResponseSize = n
-
-			return
-		}
-
-		if Config.prewriter != nil {
-			res = Config.prewriter(req, res)
-		}
-
-		n := writeRes(w, res)
-
-		l.Response = res
-		l.ResponseSize = n
+		logAndWrite(w, l, logger)
 	}
 
 	return h.h
