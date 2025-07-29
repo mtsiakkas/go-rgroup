@@ -189,3 +189,8 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		l.ResponseSize = n
 	}
 }
+
+func (h *HandlerGroup) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	handler := h.Make()
+	handler(w, req)
+}

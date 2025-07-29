@@ -3,6 +3,7 @@ package rgroup
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -240,6 +241,63 @@ func TestGroupErrorResponse(t *testing.T) {
 		}
 
 	})
+}
+
+func TestNetHttpHandler(t *testing.T) {
+	g := New()
+	g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+		return Response("GET"), nil
+	})
+	g.Post(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+		return Response("POST").WithHTTPStatus(http.StatusCreated), nil
+	})
+
+	srv := httptest.NewServer(g)
+	defer srv.Close()
+
+	client := srv.Client()
+	resGet, err := client.Get(srv.URL)
+	if err != nil {
+		t.Logf("failed to call test server: %s", err)
+		t.FailNow()
+	}
+
+	bodyGet, err := io.ReadAll(resGet.Body)
+	resGet.Body.Close()
+
+	if err != nil {
+		t.Logf("failed to read response body")
+		t.FailNow()
+	}
+
+	if string(bodyGet) != "GET" {
+		t.Logf("unexpected response: %s", string(bodyGet))
+		t.Fail()
+	}
+
+	resPost, err := client.Post(srv.URL, "", nil)
+	if err != nil {
+		t.Logf("failed to call test server: %s", err)
+		t.FailNow()
+	}
+
+	bodyPost, err := io.ReadAll(resPost.Body)
+	resPost.Body.Close()
+
+	if err != nil {
+		t.Logf("failed to read response body")
+		t.FailNow()
+	}
+
+	if resPost.StatusCode != http.StatusCreated {
+		t.Logf("unexpected status: %s", http.StatusText(resPost.StatusCode))
+		t.Fail()
+	}
+
+	if string(bodyPost) != "POST" {
+		t.Logf("unexpected response: %s", string(bodyPost))
+		t.Fail()
+	}
 }
 
 func TestGroupPrewriter(t *testing.T) {
