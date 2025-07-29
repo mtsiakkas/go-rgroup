@@ -13,6 +13,7 @@ type LoggerData struct {
 	Error        *HandlerError
 	Request      http.Request
 	Response     *HandlerResponse
+	err          error
 	time         bool
 	duration     int64
 }
