@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 )
 
 const (
@@ -52,7 +51,7 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 		}
 	}
 
-	if Config.envelopeResponse != nil && reflect.TypeFor[[]byte]() != reflect.TypeOf(res.Data) {
+	if _, ok := res.Data.([]byte); !ok && Config.envelopeResponse != nil {
 		env := res.ToEnvelope()
 
 		if Config.envelopeResponse.forwardHTTPStatus && (res.HTTPStatus != http.StatusOK) {
