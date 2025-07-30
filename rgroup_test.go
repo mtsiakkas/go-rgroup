@@ -12,6 +12,33 @@ import (
 	"testing"
 )
 
+func captureErrorLog(f func()) string {
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+	stderr := os.Stderr
+	defer func() {
+		os.Stderr = stderr
+		errorLogger.SetOutput(os.Stderr)
+	}()
+	os.Stderr = writer
+	errorLogger.SetOutput(writer)
+	out := make(chan string)
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+	go func() {
+		var buf bytes.Buffer
+		wg.Done()
+		_, _ = io.Copy(&buf, reader)
+		out <- buf.String()
+	}()
+	wg.Wait()
+	f()
+	_ = writer.Close()
+	return <-out
+}
+
 func captureOutput(f func()) string {
 	reader, writer, err := os.Pipe()
 	if err != nil {
@@ -20,7 +47,7 @@ func captureOutput(f func()) string {
 	stdout := os.Stdout
 	defer func() {
 		os.Stdout = stdout
-		log.SetOutput(os.Stderr)
+		log.SetOutput(os.Stdout)
 	}()
 	os.Stdout = writer
 	log.SetOutput(writer)
@@ -53,7 +80,7 @@ func TestDefaultLogger(t *testing.T) {
 	}
 
 	l.Error = Error(http.StatusInternalServerError).WithMessage("test error")
-	r = captureOutput(func() { defaultLogger(l) })
+	r = captureErrorLog(func() { defaultLogger(l) })
 	if r == "" {
 		t.Logf("no logger output")
 		t.Fail()

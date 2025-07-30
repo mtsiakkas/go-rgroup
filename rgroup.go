@@ -4,9 +4,9 @@ package rgroup
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 const (
@@ -14,9 +14,11 @@ const (
 	reset = "\033[0m"
 )
 
+var errorLogger *log.Logger = log.New(os.Stderr, red, log.LstdFlags)
+
 func defaultLogger(r *LoggerData) {
 	if r.Error != nil {
-		log.Printf("%s%s%s", red, r, reset)
+		errorLogger.Printf("%s%s", r, reset)
 	} else {
 		log.Println(r)
 	}
@@ -92,7 +94,7 @@ func write(w http.ResponseWriter, d any) int {
 	}
 
 	if err != nil {
-		fmt.Printf("%s[rgroup] failed to write to client: %s\n%s", red, err, reset)
+		errorLogger.Printf("[rgroup] failed to write to client: %s\n%s", err, reset)
 	}
 
 	return n

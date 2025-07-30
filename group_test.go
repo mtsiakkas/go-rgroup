@@ -235,7 +235,7 @@ func TestGroupErrorResponse(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		log := captureOutput(func() { h(rr, req) })
+		log := captureErrorLog(func() { h(rr, req) })
 
 		if rr.Code != http.StatusInternalServerError {
 			t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
