@@ -2,6 +2,7 @@ package rgroup
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -249,4 +250,20 @@ func TestWrite(t *testing.T) {
 			t.Fail()
 		}
 	})
+
+	t.Run("error", func(t *testing.T) {
+		ew := ErrorWriter{}
+		log := captureErrorLog(func() { write(ew, "test error") })
+		if !strings.HasSuffix(log, "[rgroup] failed to write to client: test error\n\033[0m\n") {
+			t.Logf("unexpected output: %s", log)
+			t.Fail()
+		}
+	})
 }
+
+type ErrorWriter struct {
+}
+
+func (w ErrorWriter) Header() http.Header        { return nil }
+func (w ErrorWriter) Write([]byte) (int, error)  { return 0, errors.New("test error") }
+func (w ErrorWriter) WriteHeader(statusCode int) {}
