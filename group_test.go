@@ -39,6 +39,27 @@ func TestMiddleware(t *testing.T) {
 		t.Logf("unexpected response: %s", rr.Body.String())
 		t.Fail()
 	}
+
+	// middleware should not be applied after Make is called
+	g.AddMiddleware(func(h Handler) Handler {
+		return func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			res, _ := h(w, req)
+			resm := Response(res.Data.(string) + ": middleware2")
+			return resm, nil
+		}
+	})
+
+	hm = g.AddMiddleware(m).Make()
+
+	rr = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+
+	hm(rr, req)
+
+	if rr.Body.String() != "test: middleware" {
+		t.Logf("unexpected response: %s", rr.Body.String())
+		t.Fail()
+	}
 }
 
 func TestAddHandlers(t *testing.T) {
