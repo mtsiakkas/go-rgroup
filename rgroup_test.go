@@ -251,7 +251,20 @@ func TestWrite(t *testing.T) {
 		}
 	})
 
-	t.Run("error", func(t *testing.T) {
+	t.Run("json marshal error", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+
+		m := MarshalErrorStruct{}
+
+		log := captureErrorLog(func() { write(rr, m) })
+
+		if !strings.Contains(log, "[rgroup] failed to write to client") {
+			t.Logf("unexpected output: %s", log)
+			t.Fail()
+		}
+	})
+
+	t.Run("write error", func(t *testing.T) {
 		ew := ErrorWriter{}
 		log := captureErrorLog(func() { write(ew, "test error") })
 		if !strings.HasSuffix(log, "[rgroup] failed to write to client: test error\n\033[0m\n") {
@@ -261,8 +274,11 @@ func TestWrite(t *testing.T) {
 	})
 }
 
-type ErrorWriter struct {
-}
+type MarshalErrorStruct struct{}
+
+func (m MarshalErrorStruct) MarshalJSON() ([]byte, error) { return nil, errors.New("test error") }
+
+type ErrorWriter struct{}
 
 func (w ErrorWriter) Header() http.Header        { return nil }
 func (w ErrorWriter) Write([]byte) (int, error)  { return 0, errors.New("test error") }
