@@ -30,11 +30,7 @@ var defaultConfig = globalConfig{
 
 // Config holds the global configuration for the package.
 // All global configurations are set by calling methods on Config.
-var Config globalConfig
-
-func init() {
-	Config = defaultConfig
-}
+var Config globalConfig = defaultConfig
 
 // Reset the global config to the default values.
 func (c *globalConfig) Reset() *globalConfig {
