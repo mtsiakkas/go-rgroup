@@ -8,23 +8,43 @@ import (
 )
 
 func TestGlobalLogger(t *testing.T) {
-	Config.SetGlobalLogger(func(req *LoggerData) {
-		fmt.Println("global postprocessor")
+	t.Run("nil logger", func(t *testing.T) {
+		Config.SetGlobalLogger(nil)
+
+		h := NewWithHandlers(HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return nil, nil
+		}}).Make()
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := captureOutput(func() { h(rr, req) })
+		if res != "" {
+			t.Logf("unexpected log: %s", res)
+			t.Fail()
+		}
+
+		Config.Reset()
 	})
 
-	h := NewWithHandlers(HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
-		return nil, nil
-	}}).Make()
+	t.Run("global", func(t *testing.T) {
+		Config.SetGlobalLogger(func(req *LoggerData) {
+			fmt.Println("global postprocessor")
+		})
 
-	rr := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	res := captureOutput(func() { h(rr, req) })
-	if res != "global postprocessor\n" {
-		t.Logf("unexpected log: %s", res)
-		t.Fail()
-	}
+		h := NewWithHandlers(HandlerMap{"GET": func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return nil, nil
+		}}).Make()
 
-	Config.Reset()
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		res := captureOutput(func() { h(rr, req) })
+		if res != "global postprocessor\n" {
+			t.Logf("unexpected log: %s", res)
+			t.Fail()
+		}
+
+		Config.Reset()
+	})
+
 }
 
 func TestLogOptions(t *testing.T) {
