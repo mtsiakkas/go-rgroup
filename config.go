@@ -23,7 +23,7 @@ var mtx = sync.RWMutex{}
 var defaultConfig = globalConfig{
 	logOptions:       true,
 	envelopeResponse: nil,
-	logger:           nil,
+	logger:           defaultLogger,
 	prewriter:        nil,
 	lockOnMake:       true,
 }

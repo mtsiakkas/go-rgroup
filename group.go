@@ -126,15 +126,9 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		return h.h
 	}
 
-	// set handler request postprocessor
-	// local > global > default
+	// set handler request logger
 	if h.logger == nil {
-		g := Config.logger
-		if g != nil {
-			h.logger = g
-		} else {
-			h.logger = defaultLogger
-		}
+		h.logger = Config.logger
 	}
 
 	logger := h.logger
