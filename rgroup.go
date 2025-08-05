@@ -31,6 +31,11 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 
 	if Config.envelopeResponse != nil {
 		env := err.ToEnvelope()
+
+		if Config.envelopeResponse.forwardHTTPStatus {
+			w.WriteHeader(err.HTTPStatus)
+		}
+
 		return write(w, env)
 	}
 
