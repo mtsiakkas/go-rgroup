@@ -4,6 +4,7 @@ package rgroup
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -41,8 +42,13 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 
 	w.WriteHeader(err.HTTPStatus)
 
+	res := err.Response
+	if errLog := err.Error(); Config.forwardErrorLog && errLog != "" {
+		res = fmt.Sprintf("%s: %s", res, errLog)
+	}
+
 	if err.Response != "" {
-		return write(w, err.Response)
+		return write(w, res)
 	}
 
 	return 0

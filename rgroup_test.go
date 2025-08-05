@@ -105,41 +105,66 @@ func TestWriteErr(t *testing.T) {
 	}
 
 	rr = httptest.NewRecorder()
-	err := Error(http.StatusNotAcceptable).WithMessage("test error")
+	err := Error(http.StatusNotAcceptable).WithMessage("test error").WithResponse("test response")
 
 	writeErr(rr, err)
+	if rr.Body.String() != "test response" {
+		t.Logf("unexpected error response: %s", rr.Body.String())
+		t.Fail()
+	}
 	if rr.Code != http.StatusNotAcceptable {
 		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
 		t.Fail()
 	}
 
-	err.WithResponse("test response")
+	Config.SetForwardErrorLog(true)
 	rr = httptest.NewRecorder()
 
 	writeErr(rr, err)
-	if rr.Body.String() != "test response" {
-		t.Logf("unexpected error message: %s", rr.Body.String())
+	if rr.Body.String() != "test response: test error" {
+		t.Logf("unexpected error response: %s", rr.Body.String())
+		t.Fail()
+	}
+	if rr.Code != http.StatusNotAcceptable {
+		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
 		t.Fail()
 	}
 
-	Config.SetEnvelopeResponse(true)
-	rr = httptest.NewRecorder()
+	Config.SetForwardErrorLog(false)
 
-	writeErr(rr, err)
-	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"error\":\"test response\"}}" {
-		t.Logf("unexpected error message: %s", rr.Body.String())
-		t.Fail()
-	}
+	t.Run("envelope", func(t *testing.T) {
+		Config.SetEnvelopeResponse(true)
+		rr = httptest.NewRecorder()
 
-	Config.SetForwardLogMessage(true)
-	rr = httptest.NewRecorder()
+		writeErr(rr, err)
+		if rr.Body.String() != "{\"status\":{\"http_status\":406,\"error\":\"test response\"}}" {
+			t.Logf("unexpected error message: %s", rr.Body.String())
+			t.Fail()
+		}
 
-	writeErr(rr, err)
-	if rr.Body.String() != "{\"status\":{\"http_status\":406,\"message\":\"test error\",\"error\":\"test response\"}}" {
-		t.Logf("unexpected error message: %s", rr.Body.String())
-		t.Fail()
-	}
+		Config.SetForwardLogMessage(true)
+		rr = httptest.NewRecorder()
 
+		writeErr(rr, err)
+		if rr.Body.String() != "{\"status\":{\"http_status\":406,\"message\":\"test error\",\"error\":\"test response\"}}" {
+			t.Logf("unexpected error message: %s", rr.Body.String())
+			t.Fail()
+		}
+
+		Config.SetForwardHTTPStatus(true)
+		rr = httptest.NewRecorder()
+
+		writeErr(rr, err)
+		if rr.Body.String() != "{\"status\":{\"http_status\":406,\"message\":\"test error\",\"error\":\"test response\"}}" {
+			t.Logf("unexpected error message: %s", rr.Body.String())
+			t.Fail()
+		}
+		if rr.Result().StatusCode != http.StatusNotAcceptable {
+			t.Logf("unexpected http status: %s", rr.Result().Status)
+			t.Fail()
+		}
+
+	})
 	Config.Reset()
 }
 

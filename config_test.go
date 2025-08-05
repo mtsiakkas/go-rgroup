@@ -73,6 +73,22 @@ func TestSetPrewriter(t *testing.T) {
 
 }
 
+func TestForwardErrorLog(t *testing.T) {
+	if Config.forwardErrorLog == true {
+		t.Log("expected forwardErrorLog == false")
+		t.Fail()
+	}
+
+	Config.SetForwardErrorLog(true)
+	if Config.forwardErrorLog != true {
+		t.Log("expected forwardErrorLog == true")
+		t.Fail()
+	}
+
+	Config.Reset()
+
+}
+
 func TestEnvelopeConfig(t *testing.T) {
 	if Config.envelopeResponse != nil {
 		t.Log("expected Config.envelopeResponse = nil")
@@ -102,6 +118,7 @@ func TestEnvelopeConfig(t *testing.T) {
 	}
 
 	Config.SetEnvelopeResponse(false)
+
 	Config.SetForwardLogMessage(true)
 	if Config.envelopeResponse == nil {
 		t.Log("expected Config.envelopeResponse not nil")

@@ -10,6 +10,7 @@ type globalConfig struct {
 	envelopeResponse *envelopeOptions
 	logger           func(*LoggerData)
 	prewriter        func(*http.Request, *HandlerResponse) *HandlerResponse
+	forwardErrorLog  bool
 	lockOnMake       bool
 }
 
@@ -25,6 +26,7 @@ var defaultConfig = globalConfig{
 	envelopeResponse: nil,
 	logger:           defaultLogger,
 	prewriter:        nil,
+	forwardErrorLog:  false,
 	lockOnMake:       true,
 }
 
@@ -137,4 +139,15 @@ func (c *globalConfig) LockOnMake(b bool) {
 	lockOnMakeOnce.Do(func() {
 		c.lockOnMake = b
 	})
+}
+
+// Send error log message to client.
+// This is only respected if envelope responses are not enabled.
+func (c *globalConfig) SetForwardErrorLog(b bool) *globalConfig {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	c.forwardErrorLog = b
+
+	return c
 }
