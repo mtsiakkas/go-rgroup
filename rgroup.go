@@ -108,7 +108,7 @@ func write(w http.ResponseWriter, d any) int {
 func logAndWrite(w http.ResponseWriter, l *LoggerData, logger func(*LoggerData)) {
 
 	defer func() {
-		if (l.Request.Method != http.MethodOptions || Config.logOptions) && logger != nil {
+		if l.Request.Method != http.MethodOptions || Config.logOptions {
 			l.Duration()
 			logger(l)
 		}
