@@ -37,7 +37,7 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 	w.WriteHeader(err.HTTPStatus)
 
 	if err.Response != "" {
-		return write(w, []byte(err.Response))
+		return write(w, err.Response)
 	}
 
 	return 0
