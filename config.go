@@ -6,15 +6,16 @@ import (
 )
 
 type globalConfig struct {
-	logOptions       bool
-	envelopeResponse *envelopeOptions
-	logger           func(*LoggerData)
-	prewriter        func(*http.Request, *HandlerResponse) *HandlerResponse
-	forwardErrorLog  bool
-	lockOnMake       bool
+	logOptions      bool
+	Envelope        envelopeOptions
+	logger          func(*LoggerData)
+	prewriter       func(*http.Request, *HandlerResponse) *HandlerResponse
+	forwardErrorLog bool
+	lockOnMake      bool
 }
 
 type envelopeOptions struct {
+	enabled           bool
 	forwardHTTPStatus bool
 	forwardLogMessage bool
 }
@@ -22,12 +23,47 @@ type envelopeOptions struct {
 var mtx = sync.Mutex{}
 
 var defaultConfig = globalConfig{
-	logOptions:       true,
-	envelopeResponse: nil,
-	logger:           defaultLogger,
-	prewriter:        nil,
-	forwardErrorLog:  false,
-	lockOnMake:       true,
+	logOptions:      true,
+	Envelope:        envelopeOptions{},
+	logger:          defaultLogger,
+	prewriter:       nil,
+	forwardErrorLog: false,
+	lockOnMake:      true,
+}
+
+// Enable envelope response. Disabled by default
+func (e *envelopeOptions) Enable() {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	e.enabled = true
+}
+
+// Disable envelope response. Disabled by default
+func (e *envelopeOptions) Disable() {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	e.enabled = false
+}
+
+// Forward the log message to the client.
+// Default: false
+func (e *envelopeOptions) SetForwardLogMessage(b bool) {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	e.forwardLogMessage = b
+}
+
+// Forward http status code to client.
+// Default: false
+func (e *envelopeOptions) SetForwardHTTPStatus(b bool) {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	e.forwardHTTPStatus = b
+
 }
 
 // Config holds the global configuration for the package.
@@ -65,53 +101,6 @@ func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
 	defer mtx.Unlock()
 
 	c.logOptions = b
-
-	return c
-}
-
-// Forward the log message to the client.
-// Calling this method automatically enables envelope responses.
-// Default: false
-func (c *globalConfig) SetForwardLogMessage(b bool) *globalConfig {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	if c.envelopeResponse == nil {
-		c.envelopeResponse = new(envelopeOptions)
-	}
-
-	c.envelopeResponse.forwardLogMessage = b
-
-	return c
-}
-
-// Forward http status code to client.
-// Calling this method automatically enables envelope responses.
-// Default: false
-func (c *globalConfig) SetForwardHTTPStatus(b bool) *globalConfig {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	if c.envelopeResponse == nil {
-		c.envelopeResponse = new(envelopeOptions)
-	}
-
-	c.envelopeResponse.forwardHTTPStatus = b
-
-	return c
-}
-
-// Enable envelope responses.
-// Default: false
-func (c *globalConfig) SetEnvelopeResponse(b bool) *globalConfig {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	if b {
-		c.envelopeResponse = new(envelopeOptions)
-	} else {
-		c.envelopeResponse = nil
-	}
 
 	return c
 }

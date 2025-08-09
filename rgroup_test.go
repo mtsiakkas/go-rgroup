@@ -133,7 +133,7 @@ func TestWriteErr(t *testing.T) {
 	Config.SetForwardErrorLog(false)
 
 	t.Run("envelope", func(t *testing.T) {
-		Config.SetEnvelopeResponse(true)
+		Config.Envelope.Enable()
 		rr = httptest.NewRecorder()
 
 		writeErr(rr, err)
@@ -142,7 +142,7 @@ func TestWriteErr(t *testing.T) {
 			t.Fail()
 		}
 
-		Config.SetForwardLogMessage(true)
+		Config.Envelope.SetForwardLogMessage(true)
 		rr = httptest.NewRecorder()
 
 		writeErr(rr, err)
@@ -151,7 +151,7 @@ func TestWriteErr(t *testing.T) {
 			t.Fail()
 		}
 
-		Config.SetForwardHTTPStatus(true)
+		Config.Envelope.SetForwardHTTPStatus(true)
 		rr = httptest.NewRecorder()
 
 		writeErr(rr, err)
@@ -194,7 +194,7 @@ func TestWriteRes(t *testing.T) {
 		t.Fail()
 	}
 
-	Config.SetEnvelopeResponse(true)
+	Config.Envelope.Enable()
 	rr = httptest.NewRecorder()
 	writeRes(rr, res)
 	if rr.Body.String() != "{\"data\":\"test data\",\"status\":{\"http_status\":202}}" {
@@ -202,7 +202,7 @@ func TestWriteRes(t *testing.T) {
 		t.Fail()
 	}
 
-	Config.SetForwardHTTPStatus(true)
+	Config.Envelope.SetForwardHTTPStatus(true)
 	rr = httptest.NewRecorder()
 
 	writeRes(rr, res)

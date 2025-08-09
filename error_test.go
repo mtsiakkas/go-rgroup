@@ -55,6 +55,7 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorEnvelope(t *testing.T) {
+	Config.Envelope.Enable()
 	err := HandlerError{
 		HTTPStatus: http.StatusNotAcceptable,
 	}
@@ -73,7 +74,7 @@ func TestErrorEnvelope(t *testing.T) {
 	target.Status.Error = toPtr("test response")
 	envCompare(t, err.ToEnvelope(), &target)
 
-	Config.SetForwardLogMessage(true)
+	Config.Envelope.SetForwardLogMessage(true)
 	target.Status.Message = toPtr(err.Error())
 	envCompare(t, err.ToEnvelope(), &target)
 

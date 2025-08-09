@@ -90,43 +90,37 @@ func TestForwardErrorLog(t *testing.T) {
 }
 
 func TestEnvelopeConfig(t *testing.T) {
-	if Config.envelopeResponse != nil {
+	if Config.Envelope.enabled {
 		t.Log("expected Config.envelopeResponse = nil")
 		t.Fail()
 	}
 
-	Config.SetEnvelopeResponse(true)
-	if Config.envelopeResponse == nil {
+	Config.Envelope.Enable()
+	if !Config.Envelope.enabled {
 		t.Log("expected Config.envelopeResponse not nil")
 		t.Fail()
 	}
 
-	Config.SetEnvelopeResponse(false)
-	if Config.envelopeResponse != nil {
-		t.Log("expected Config.envelopeResponse = nil")
-		t.Fail()
-	}
-
-	Config.SetForwardHTTPStatus(true)
-	if Config.envelopeResponse == nil {
+	Config.Envelope.SetForwardHTTPStatus(true)
+	if !Config.Envelope.enabled {
 		t.Log("expected Config.envelopeResponse not nil")
 		t.Fail()
-		if !Config.envelopeResponse.forwardHTTPStatus {
+		if !Config.Envelope.forwardHTTPStatus {
 			t.Log("expected Config.envelopeResponse.forwardHTTPStatus = true")
 			t.Fail()
 		}
 	}
 
-	Config.SetEnvelopeResponse(false)
-
-	Config.SetForwardLogMessage(true)
-	if Config.envelopeResponse == nil {
-		t.Log("expected Config.envelopeResponse not nil")
+	Config.Envelope.SetForwardLogMessage(true)
+	if !Config.Envelope.forwardLogMessage {
+		t.Log("expected Config.envelopeResponse.forwardLogMessage = true")
 		t.Fail()
-		if !Config.envelopeResponse.forwardLogMessage {
-			t.Log("expected Config.envelopeResponse.forwardLogMessage = true")
-			t.Fail()
-		}
+	}
+
+	Config.Envelope.Disable()
+	if Config.Envelope.enabled {
+		t.Log("expected Config.Envelope.enabled=false")
+		t.Fail()
 	}
 
 	Config.Reset()

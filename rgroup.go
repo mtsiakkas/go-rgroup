@@ -30,10 +30,10 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 		return 0
 	}
 
-	if Config.envelopeResponse != nil {
+	if Config.Envelope.enabled {
 		env := err.ToEnvelope()
 
-		if Config.envelopeResponse.forwardHTTPStatus {
+		if Config.Envelope.forwardHTTPStatus {
 			w.WriteHeader(err.HTTPStatus)
 		}
 
@@ -65,10 +65,10 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 		}
 	}
 
-	if _, ok := res.Data.([]byte); !ok && Config.envelopeResponse != nil {
+	if _, ok := res.Data.([]byte); !ok && Config.Envelope.enabled {
 		env := res.ToEnvelope()
 
-		if Config.envelopeResponse.forwardHTTPStatus && (res.HTTPStatus != http.StatusOK) {
+		if Config.Envelope.forwardHTTPStatus && (res.HTTPStatus != http.StatusOK) {
 			w.WriteHeader(res.HTTPStatus)
 		}
 

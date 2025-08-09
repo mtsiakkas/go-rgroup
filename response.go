@@ -61,7 +61,7 @@ func (r *HandlerResponse) ToEnvelope() *Envelope {
 		},
 	}
 
-	if Config.envelopeResponse != nil && Config.envelopeResponse.forwardLogMessage && r.LogMessage != "" {
+	if Config.Envelope.enabled && Config.Envelope.forwardLogMessage && r.LogMessage != "" {
 		e.Status.Message = &r.LogMessage
 	}
 

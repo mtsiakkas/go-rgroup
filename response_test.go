@@ -48,8 +48,8 @@ func TestResponse(t *testing.T) {
 		t.Fail()
 	}
 
-	Config.SetEnvelopeResponse(true)
-	Config.SetForwardLogMessage(true)
+	Config.Envelope.Enable()
+	Config.Envelope.SetForwardLogMessage(true)
 
 	env := r.ToEnvelope()
 	switch {
