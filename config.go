@@ -71,17 +71,15 @@ func (e *envelopeOptions) SetForwardHTTPStatus(b bool) {
 var Config globalConfig = defaultConfig
 
 // Reset the global config to the default values.
-func (c *globalConfig) Reset() *globalConfig {
+func (c *globalConfig) Reset() {
 	mtx.Lock()
 	defer mtx.Unlock()
 
 	*c = defaultConfig
-
-	return c
 }
 
 // Set the global logger function.
-func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
+func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) {
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -90,30 +88,24 @@ func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) *globalConfig {
 	}
 
 	c.logger = p
-
-	return c
 }
 
 // Call logger function on OPTIONS requests.
 // Default: true
-func (c *globalConfig) SetLogOptionsRequests(b bool) *globalConfig {
+func (c *globalConfig) SetLogOptionsRequests(b bool) {
 	mtx.Lock()
 	defer mtx.Unlock()
 
 	c.logOptions = b
-
-	return c
 }
 
 // Set global prewriter function.
 // This can be used to further process the response before writing to the client.
-func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) *globalConfig {
+func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) {
 	mtx.Lock()
 	defer mtx.Unlock()
 
 	c.prewriter = f
-
-	return c
 }
 
 var lockOnMakeOnce sync.Once
@@ -132,11 +124,9 @@ func (c *globalConfig) LockOnMake(b bool) {
 
 // Send error log message to client.
 // This is only respected if envelope responses are not enabled.
-func (c *globalConfig) SetForwardErrorLog(b bool) *globalConfig {
+func (c *globalConfig) SetForwardErrorLog(b bool) {
 	mtx.Lock()
 	defer mtx.Unlock()
 
 	c.forwardErrorLog = b
-
-	return c
 }
