@@ -19,7 +19,7 @@ type envelopeOptions struct {
 	forwardLogMessage bool
 }
 
-var mtx = sync.RWMutex{}
+var mtx = sync.Mutex{}
 
 var defaultConfig = globalConfig{
 	logOptions:       true,
