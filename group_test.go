@@ -177,8 +177,8 @@ func TestEmptyGroup(t *testing.T) {
 
 	h(rr, req)
 
-	if rr.Code != http.StatusOK {
-		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Logf("unexpected status: %s", rr.Result().Status)
 		t.Fail()
 	}
 
@@ -192,8 +192,8 @@ func TestEmptyGroup(t *testing.T) {
 	h = g.Make()
 	h(rr, req)
 
-	if rr.Code == http.StatusMethodNotAllowed {
-		t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Logf("unexpected status: %s", rr.Result().Status)
 		t.Fail()
 	}
 

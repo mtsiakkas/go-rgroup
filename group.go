@@ -121,11 +121,6 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		return h.h
 	}
 
-	if len(h.handlers) == 0 {
-		h.h = func(_ http.ResponseWriter, _ *http.Request) {}
-		return h.h
-	}
-
 	// set handler request logger
 	if h.logger == nil {
 		h.logger = Config.logger
