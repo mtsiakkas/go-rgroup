@@ -84,7 +84,7 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 		}
 	}
 
-	if Config.Envelope.enabled && Config.Envelope.forwardLogMessage {
+	if Config.Envelope.forwardLogMessage {
 		env.Status.Message = toPtr(e.Error())
 	}
 
