@@ -5,6 +5,14 @@ import (
 	"net/http"
 )
 
+// Error struct that can be used to return additional info on Handler error
+type HandlerError struct {
+	err        error
+	LogMessage string
+	Response   string
+	HTTPStatus int
+}
+
 // Create new HandlerError with the specified http status code.
 func Error(code int) *HandlerError {
 	e := HandlerError{
@@ -15,14 +23,6 @@ func Error(code int) *HandlerError {
 	}
 
 	return &e
-}
-
-// Error struct that can be used to return additional info on Handler error
-type HandlerError struct {
-	err        error
-	LogMessage string
-	Response   string
-	HTTPStatus int
 }
 
 // Add a log message to the HandlerError.
