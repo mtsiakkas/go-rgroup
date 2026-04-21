@@ -30,8 +30,9 @@ func (m *HandlerMux) Handle(path string, h http.Handler) {
 }
 
 // Add middleware to all handler groups in mux
-func (m *HandlerMux) AddMiddleware(mid ...Middleware) {
+func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
 	m.middleware = append(m.middleware, mid...)
+	return m
 }
 
 // Generates an http.ServeMux from the HandlerMux.
@@ -47,8 +48,7 @@ func (m *HandlerMux) Make() http.Handler {
 			h2.AddMiddleware(m.middleware...)
 			h3 = h2.Make()
 		default:
-			hh := fromHandler(h2)
-			h3 = hh.applyMiddleware(m.middleware).ToHandlerFunc()
+			h3 = fromHandler(h2).applyMiddleware(m.middleware).ToHandlerFunc()
 		}
 		s.Handle(p, h3)
 	}
