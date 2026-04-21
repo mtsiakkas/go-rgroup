@@ -25,8 +25,8 @@ func (m *HandlerMux) Handle(path string, h *HandlerGroup) {
 }
 
 // Add middleware to all handler groups in mux
-func (m *HandlerMux) AddMiddleware(mid Middleware) {
-	m.middleware = append(m.middleware, mid)
+func (m *HandlerMux) AddMiddleware(mid ...Middleware) {
+	m.middleware = append(m.middleware, mid...)
 }
 
 // Generates an http.ServeMux from the HandlerMux.

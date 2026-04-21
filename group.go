@@ -101,7 +101,7 @@ func (h *HandlerGroup) Get(handler Handler) {
 }
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
-func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
+func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
 	if Config.lockOnMake && h.h != nil {
 		return h
 	}
@@ -110,7 +110,7 @@ func (h *HandlerGroup) AddMiddleware(m Middleware) *HandlerGroup {
 		h.middleware = make([]Middleware, 0)
 	}
 
-	h.middleware = append(h.middleware, m)
+	h.middleware = append(h.middleware, m...)
 
 	return h
 }
