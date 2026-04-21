@@ -8,6 +8,7 @@ import (
 type HandlerMux struct {
 	h          map[string]*HandlerGroup
 	middleware []Middleware
+	prefix     string
 }
 
 // Create a new empty HandlerMux
@@ -17,6 +18,11 @@ func NewServeMux() *HandlerMux {
 	h.middleware = make([]Middleware, 0)
 
 	return h
+}
+
+func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
+	m.prefix = prefix
+	return m
 }
 
 // Add HandlerGroup
@@ -39,7 +45,7 @@ func (m *HandlerMux) Make() *http.ServeMux {
 		}
 		s.Handle(p, h.Make())
 	}
-	return s
+	return http.StripPrefix(m.prefix, s)
 }
 
 func (m *HandlerMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
