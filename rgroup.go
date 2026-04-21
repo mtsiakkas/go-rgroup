@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const (
@@ -142,6 +143,47 @@ func logAndWrite(w http.ResponseWriter, l *LoggerData, logger func(*LoggerData))
 	n := writeRes(w, l.Response)
 
 	l.ResponseSize = n
+}
+
+type rwriter struct {
+	data    []byte
+	status  int
+	headers http.Header
+}
+
+func (r *rwriter) Header() http.Header {
+	return r.headers
+}
+
+func (r *rwriter) Write(b []byte) (int, error) {
+	r.data = b
+	return len(b), nil
+}
+
+func (r *rwriter) WriteHeader(statusCode int) {
+	r.status = statusCode
+}
+
+func fromHandler(h http.Handler) Handler {
+	return func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+		ww := new(rwriter)
+		ww.headers = http.Header{}
+		if ww.status < 100 {
+			ww.status = http.StatusOK
+		}
+
+		h.ServeHTTP(ww, req)
+
+		if ww.status > 399 {
+			return nil, Error(ww.status).WithResponse(string(ww.data))
+		} else {
+			res := Response(ww.data).WithHTTPStatus(ww.status)
+			for k, v := range ww.Header() {
+				res.WithHeader(k, strings.Join(v, ","))
+			}
+			return res, nil
+		}
+	}
 }
 
 func toPtr[T any](t T) *T {
