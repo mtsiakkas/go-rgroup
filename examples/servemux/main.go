@@ -25,9 +25,25 @@ func main() {
 	// Create new http.ServeMux
 	r := rgroup.NewServeMux()
 
-	// Add generated http.Handler/http.HandlerFunc to r
-	r.Handle("/g1", g1)
-	r.Handle("/g2", g2)
+	// Create sub router
+	r2 := rgroup.NewServeMux()
+	r2.Handle("/g2/", g2)
+
+	// new http.Handler (http.ServeMux)
+	r3 := http.NewServeMux()
+	r3.HandleFunc("/g3-1/", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Add("X-Rgroup", "TEST")
+		w.Write([]byte("header test"))
+		w.WriteHeader(http.StatusOK)
+	})
+	r3.HandleFunc("/g3-2/", func(w http.ResponseWriter, req *http.Request) {
+		w.Write([]byte("error test"))
+		w.WriteHeader(http.StatusBadRequest)
+	})
+
+	r.Handle("/g1/", g1)
+	r.Handle("/r2/", r2.SetPrefix("/r2"))
+	r.Handle("/r3/", http.StripPrefix("/r3", r3))
 	r.AddMiddleware(middleware)
 
 	// Start http server
@@ -70,13 +86,13 @@ func handleGet2(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerRespon
 func handlePost2(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 	ctx := req.Context()
 	message := ctx.Value("mid-ctx")
-	fmt.Println(message)
 	return rgroup.Response(message), nil
 }
 
 func middleware(h rgroup.Handler) rgroup.Handler {
 	return func(w http.ResponseWriter, req *http.Request) (*rgroup.HandlerResponse, error) {
 		ctx := context.WithValue(req.Context(), "mid-ctx", "hello from context middleware")
+		fmt.Println("middleware run")
 		return h(w, req.WithContext(ctx))
 	}
 }
