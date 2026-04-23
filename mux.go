@@ -5,6 +5,7 @@ import (
 )
 
 type HandlerMux struct {
+	s          *http.ServeMux
 	h          map[string]http.Handler
 	middleware []Middleware
 	prefix     string
@@ -37,7 +38,12 @@ func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
 
 // Generates an http.ServeMux from the HandlerMux.
 func (m *HandlerMux) Make() http.Handler {
-	s := new(http.ServeMux)
+	if m.s != nil {
+		return m.s
+	}
+
+	m.s = new(http.ServeMux)
+
 	for p, h := range m.h {
 		var h3 http.Handler
 		switch h2 := h.(type) {
@@ -50,9 +56,9 @@ func (m *HandlerMux) Make() http.Handler {
 		default:
 			h3 = fromHandler(h2).applyMiddleware(m.middleware).ToHandlerFunc()
 		}
-		s.Handle(p, h3)
+		m.s.Handle(p, h3)
 	}
-	return http.StripPrefix(m.prefix, s)
+	return http.StripPrefix(m.prefix, m.s)
 }
 
 func (m *HandlerMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
