@@ -3,6 +3,7 @@ package rgroup
 import (
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // Middleware function signature
@@ -13,7 +14,9 @@ type Middleware func(Handler) Handler
 type HandlerMap map[string]Handler
 
 // HandlerGroup contains all Handlers, Middleware and the custom logger for a route.
+// A HandlerGroup is safe for concurrent use.
 type HandlerGroup struct {
+	mtx        sync.Mutex
 	h          http.HandlerFunc
 	handlers   HandlerMap
 	logger     func(*LoggerData)
@@ -22,6 +25,9 @@ type HandlerGroup struct {
 
 // MethodsAllowed returns a string slice with all http verbs handled by the group
 func (h *HandlerGroup) MethodsAllowed() []string {
+	h.mtx.Lock()
+	defer h.mtx.Unlock()
+
 	opts := make([]string, len(h.handlers)+1)
 	opts[0] = http.MethodOptions
 
@@ -57,11 +63,17 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 // Set a local logger function to the HandlerGroup.
 // This will replace the global logger for the specified route.
 func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
+	h.mtx.Lock()
+	defer h.mtx.Unlock()
+
 	h.logger = p
 }
 
 // Adds a new Handler to the HandlerGroup.
 func (h *HandlerGroup) AddHandler(method string, handler Handler) {
+	h.mtx.Lock()
+	defer h.mtx.Unlock()
+
 	if Config.lockOnMake && h.h != nil {
 		return
 	}
@@ -102,6 +114,9 @@ func (h *HandlerGroup) Get(handler Handler) {
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
 func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
+	h.mtx.Lock()
+	defer h.mtx.Unlock()
+
 	if Config.lockOnMake && h.h != nil {
 		return h
 	}
@@ -117,6 +132,9 @@ func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
 
 // Generates an http.HandlerFunc from the HandlerGroup.
 func (h *HandlerGroup) Make() http.HandlerFunc {
+	h.mtx.Lock()
+	defer h.mtx.Unlock()
+
 	if Config.lockOnMake && h.h != nil {
 		return h.h
 	}
@@ -134,7 +152,10 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		func() {
 			defer recoverPanic(l)
 
+			h.mtx.Lock()
 			f, ok := h.handlers[req.Method]
+			h.mtx.Unlock()
+
 			switch {
 			case ok:
 				l.Response, l.err = f.applyMiddleware(h.middleware)(w, req)

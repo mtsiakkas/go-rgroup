@@ -2,9 +2,12 @@ package rgroup
 
 import (
 	"net/http"
+	"sync"
 )
 
+// HandlerMux is safe for concurrent use.
 type HandlerMux struct {
+	mtx        sync.Mutex
 	s          *http.ServeMux
 	h          map[string]http.Handler
 	middleware []Middleware
@@ -21,23 +24,35 @@ func NewServeMux() *HandlerMux {
 }
 
 func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
 	m.prefix = prefix
 	return m
 }
 
 // Add HandlerGroup
 func (m *HandlerMux) Handle(path string, h http.Handler) {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
 	m.h[path] = h
 }
 
 // Add middleware to all handler groups in mux
 func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
 	m.middleware = append(m.middleware, mid...)
 	return m
 }
 
 // Generates an http.ServeMux from the HandlerMux.
 func (m *HandlerMux) Make() http.Handler {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
 	if m.s != nil {
 		return m.s
 	}
