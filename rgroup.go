@@ -176,6 +176,12 @@ func fromHandler(h http.Handler) Handler {
 		h.ServeHTTP(ww, req)
 
 		if ww.status > 399 {
+			for k, v := range ww.Header() {
+				for _, vv := range v {
+					w.Header().Add(k, vv)
+				}
+			}
+
 			return nil, Error(ww.status).WithResponse(string(ww.data))
 		} else {
 			res := Response(ww.data).WithHTTPStatus(ww.status)
