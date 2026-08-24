@@ -84,7 +84,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) {
 
 	m := strings.ToUpper(method)
 
-	h.handlers[m] = handler
+	h.handlers[m] = handler.applyMiddleware(h.middleware)
 }
 
 // Utility function to add POST Handler to HandlerGroup
@@ -127,6 +127,10 @@ func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
 
 	h.middleware = append(h.middleware, m...)
 
+	for method, f := range h.handlers {
+		h.handlers[method] = f.applyMiddleware(m)
+	}
+
 	return h
 }
 
@@ -158,7 +162,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 
 			switch {
 			case ok:
-				l.Response, l.err = f.applyMiddleware(h.middleware)(w, req)
+				l.Response, l.err = f(w, req)
 			case !ok && req.Method == http.MethodOptions:
 				l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
 			default:
