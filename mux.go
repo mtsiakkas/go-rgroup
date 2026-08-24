@@ -8,8 +8,8 @@ import (
 // HandlerMux is safe for concurrent use.
 type HandlerMux struct {
 	mtx        sync.Mutex
-	s          *http.ServeMux
-	h          map[string]http.Handler
+	built      http.Handler
+	handlers   map[string]http.Handler
 	middleware []Middleware
 	prefix     string
 }
@@ -17,7 +17,7 @@ type HandlerMux struct {
 // Create a new empty HandlerMux
 func NewServeMux() *HandlerMux {
 	h := new(HandlerMux)
-	h.h = make(map[string]http.Handler)
+	h.handlers = make(map[string]http.Handler)
 	h.middleware = make([]Middleware, 0)
 
 	return h
@@ -36,7 +36,7 @@ func (m *HandlerMux) Handle(path string, h http.Handler) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	m.h[path] = h
+	m.handlers[path] = h
 }
 
 // Add middleware to all handler groups in mux
@@ -53,13 +53,13 @@ func (m *HandlerMux) Make() http.Handler {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
-	if m.s != nil {
-		return m.s
+	if m.built != nil {
+		return m.built
 	}
 
-	m.s = new(http.ServeMux)
+	s := http.NewServeMux()
 
-	for p, h := range m.h {
+	for p, h := range m.handlers {
 		var h3 http.Handler
 		switch h2 := h.(type) {
 		case *HandlerMux:
@@ -71,9 +71,12 @@ func (m *HandlerMux) Make() http.Handler {
 		default:
 			h3 = fromHandler(h2).applyMiddleware(m.middleware).ToHandlerFunc()
 		}
-		m.s.Handle(p, h3)
+		s.Handle(p, h3)
 	}
-	return http.StripPrefix(m.prefix, m.s)
+
+	m.built = http.StripPrefix(m.prefix, s)
+
+	return m.built
 }
 
 func (m *HandlerMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
