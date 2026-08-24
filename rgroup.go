@@ -157,7 +157,7 @@ func (r *rwriter) Header() http.Header {
 }
 
 func (r *rwriter) Write(b []byte) (int, error) {
-	r.data = b
+	r.data = append(r.data, b...)
 	return len(b), nil
 }
 
