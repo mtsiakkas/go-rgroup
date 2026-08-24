@@ -131,15 +131,19 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	h.h = func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
 
-		f, ok := h.handlers[req.Method]
-		switch {
-		case ok:
-			l.Response, l.err = f.applyMiddleware(h.middleware)(w, req)
-		case !ok && req.Method == http.MethodOptions:
-			l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
-		default:
-			l.err = Error(http.StatusMethodNotAllowed)
-		}
+		func() {
+			defer recoverPanic(l)
+
+			f, ok := h.handlers[req.Method]
+			switch {
+			case ok:
+				l.Response, l.err = f.applyMiddleware(h.middleware)(w, req)
+			case !ok && req.Method == http.MethodOptions:
+				l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
+			default:
+				l.err = Error(http.StatusMethodNotAllowed)
+			}
+		}()
 
 		logAndWrite(w, l, logger)
 	}

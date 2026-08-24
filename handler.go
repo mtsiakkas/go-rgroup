@@ -23,7 +23,11 @@ func (h Handler) ToHandlerFunc() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
 
-		l.Response, l.err = h(w, req)
+		func() {
+			defer recoverPanic(l)
+
+			l.Response, l.err = h(w, req)
+		}()
 
 		logAndWrite(w, l, logger)
 	}

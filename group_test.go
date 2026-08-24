@@ -11,6 +11,123 @@ import (
 	"testing"
 )
 
+func TestRecoverPanic(t *testing.T) {
+	t.Run("recovered", func(t *testing.T) {
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			panic("test_panic")
+		})
+
+		var logged *LoggerData
+		g.SetLogger(func(l *LoggerData) { logged = l })
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		g.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusInternalServerError {
+			t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
+			t.Fail()
+		}
+
+		if logged == nil || logged.Error == nil {
+			t.Log("expected the panic to reach the logger")
+			t.FailNow()
+		}
+
+		var pe *PanicError
+		if !errors.As(logged.Error, &pe) {
+			t.Logf("expected a PanicError, got: %s", logged.Error)
+			t.FailNow()
+		}
+
+		if pe.Value() != "test_panic" {
+			t.Logf("unexpected panic value: %v", pe.Value())
+			t.Fail()
+		}
+
+		if len(pe.Stack()) == 0 {
+			t.Log("expected a stack trace")
+			t.Fail()
+		}
+	})
+
+	t.Run("middleware", func(t *testing.T) {
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			return Response("test"), nil
+		})
+		g.AddMiddleware(func(h Handler) Handler {
+			return func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+				panic("test_panic")
+			}
+		})
+		g.SetLogger(func(l *LoggerData) {})
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		g.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusInternalServerError {
+			t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
+			t.Fail()
+		}
+	})
+
+	t.Run("ToHandlerFunc", func(t *testing.T) {
+		h := Handler(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			panic("test_panic")
+		})
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		captureErrorLog(func() { h.ToHandlerFunc()(rr, req) })
+
+		if rr.Code != http.StatusInternalServerError {
+			t.Logf("unexpected status: %d (%s)", rr.Code, http.StatusText(rr.Code))
+			t.Fail()
+		}
+	})
+
+	t.Run("abort handler", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r != http.ErrAbortHandler {
+				t.Logf("expected http.ErrAbortHandler to propagate, got: %v", r)
+				t.Fail()
+			}
+		}()
+
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			panic(http.ErrAbortHandler)
+		})
+
+		g.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		defer Config.Reset()
+		defer func() {
+			if r := recover(); r != "test_panic" {
+				t.Logf("expected the panic to propagate, got: %v", r)
+				t.Fail()
+			}
+		}()
+
+		Config.SetRecoverPanics(false)
+
+		g := New()
+		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
+			panic("test_panic")
+		})
+
+		g.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+	})
+}
+
 func TestMiddleware(t *testing.T) {
 
 	h := func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {

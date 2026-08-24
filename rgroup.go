@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 )
 
@@ -188,4 +189,23 @@ func fromHandler(h http.Handler) Handler {
 
 func toPtr[T any](t T) *T {
 	return &t
+}
+
+func recoverPanic(l *LoggerData) {
+	if !Config.recoverPanics {
+		return
+	}
+
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	// net/http uses ErrAbortHandler as a sentinel to drop the connection silently, so it must not be swallowed.
+	if err, ok := r.(error); ok && errors.Is(err, http.ErrAbortHandler) {
+		panic(r)
+	}
+
+	l.Response = nil
+	l.err = Error(http.StatusInternalServerError).Wrap(&PanicError{value: r, stack: debug.Stack()})
 }

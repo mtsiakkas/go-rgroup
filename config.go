@@ -12,6 +12,7 @@ type globalConfig struct {
 	prewriter       func(*http.Request, *HandlerResponse) *HandlerResponse
 	forwardErrorLog bool
 	lockOnMake      bool
+	recoverPanics   bool
 }
 
 type envelopeOptions struct {
@@ -29,6 +30,7 @@ var defaultConfig = globalConfig{
 	prewriter:       nil,
 	forwardErrorLog: false,
 	lockOnMake:      true,
+	recoverPanics:   true,
 }
 
 // Enable envelope response. Disabled by default
@@ -120,6 +122,19 @@ func (c *globalConfig) LockOnMake(b bool) {
 	lockOnMakeOnce.Do(func() {
 		c.lockOnMake = b
 	})
+}
+
+// Recover panics raised by handlers and respond with 500 Internal Server Error.
+// The recovered value and its stack trace are wrapped in a PanicError, carried
+// by the HandlerError passed to the logger.
+// When disabled, panics propagate to net/http, which aborts the connection
+// without calling the logger.
+// Default: true
+func (c *globalConfig) SetRecoverPanics(b bool) {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	c.recoverPanics = b
 }
 
 // Send error log message to client.

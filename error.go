@@ -90,3 +90,23 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 
 	return &env
 }
+
+// PanicError carries a value recovered from a panic in a Handler, along with the stack trace captured at the point of recovery.
+type PanicError struct {
+	value any
+	stack []byte
+}
+
+func (p *PanicError) Error() string {
+	return fmt.Sprintf("panic: %v\n%s", p.value, p.stack)
+}
+
+// Value returns the value the Handler panicked with.
+func (p *PanicError) Value() any {
+	return p.value
+}
+
+// Stack returns the stack trace captured when the panic was recovered.
+func (p *PanicError) Stack() []byte {
+	return p.stack
+}
