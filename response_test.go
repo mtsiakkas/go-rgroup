@@ -37,13 +37,19 @@ func TestResponse(t *testing.T) {
 	}
 
 	r.WithHeader("X-TEST", "test")
-	if v, ok := r.Headers["X-TEST"]; !ok || v != "test" {
+	if v := r.Headers.Get("X-TEST"); v != "test" {
 		t.Logf("failed to set header")
 		t.Fail()
 	}
 
+	r.AddHeader("X-TEST", "test2")
+	if v := r.Headers.Values("X-TEST"); len(v) != 2 || v[0] != "test" || v[1] != "test2" {
+		t.Logf("failed to add header")
+		t.Fail()
+	}
+
 	r.DeleteHeader("X-TEST")
-	if _, ok := r.Headers["X-TEST"]; ok {
+	if v := r.Headers.Get("X-TEST"); len(v) != 0 {
 		t.Logf("failed to delete header")
 		t.Fail()
 	}

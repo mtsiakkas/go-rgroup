@@ -52,6 +52,25 @@ func TestError(t *testing.T) {
 		t.Logf("unexpected error unwrap: \"%s\"", e2.Unwrap())
 		t.Fail()
 	}
+
+	e3 := Error(http.StatusInternalServerError).WithHeader("X-TEST", "test")
+	if v := e3.Headers.Values("X-TEST"); v[0] != "test" {
+		t.Log("failed to set error header")
+		t.Fail()
+	}
+
+	e3.AddHeader("X-TEST", "test2")
+	if v := e3.Headers.Values("X-TEST"); len(v) != 2 || v[0] != "test" || v[1] != "test2" {
+		t.Log("failed to add error header")
+		t.Fail()
+	}
+
+	e3.DeleteHeader("X-TEST")
+	if v := e3.Headers.Values("X-TEST"); len(v) != 0 {
+		t.Log("failed to delete error header")
+		t.Fail()
+	}
+
 }
 
 func TestErrorEnvelope(t *testing.T) {
