@@ -169,9 +169,7 @@ func fromHandler(h http.Handler) Handler {
 	return func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		ww := new(rwriter)
 		ww.headers = http.Header{}
-		if ww.status < 100 {
-			ww.status = http.StatusOK
-		}
+		ww.status = http.StatusOK
 
 		h.ServeHTTP(ww, req)
 
