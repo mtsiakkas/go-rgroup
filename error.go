@@ -11,6 +11,7 @@ type HandlerError struct {
 	LogMessage string
 	Response   string
 	HTTPStatus int
+	Headers    http.Header
 }
 
 // Create new HandlerError with the specified http status code.
@@ -20,6 +21,7 @@ func Error(code int) *HandlerError {
 		err:        nil,
 		LogMessage: "",
 		Response:   "",
+		Headers:    http.Header{},
 	}
 
 	return &e
@@ -36,6 +38,35 @@ func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 // Add response to the HandlerError to be send to the client.
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
+
+	return e
+}
+
+// Set a response header, replacing any existing values for the header.
+func (e *HandlerError) WithHeader(header string, value string) *HandlerError {
+	if e.Headers == nil {
+		e.Headers = http.Header{}
+	}
+
+	e.Headers.Set(header, value)
+
+	return e
+}
+
+// Append a value to a response header, keeping any existing values.
+func (e *HandlerError) AddHeader(header string, value string) *HandlerError {
+	if e.Headers == nil {
+		e.Headers = http.Header{}
+	}
+
+	e.Headers.Add(header, value)
+
+	return e
+}
+
+// Delete all values of a response header.
+func (e *HandlerError) DeleteHeader(header string) *HandlerError {
+	e.Headers.Del(header)
 
 	return e
 }

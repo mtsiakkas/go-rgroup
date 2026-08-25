@@ -31,6 +31,8 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 		return 0
 	}
 
+	copyHeaders(w.Header(), err.Headers)
+
 	if Config.Envelope.enabled {
 		env := err.ToEnvelope()
 
@@ -169,13 +171,10 @@ func fromHandler(h http.Handler) Handler {
 		h.ServeHTTP(ww, req)
 
 		if ww.status > 399 {
-			for k, v := range ww.Header() {
-				for _, vv := range v {
-					w.Header().Add(k, vv)
-				}
-			}
+			err := Error(ww.status).WithResponse(string(ww.data))
+			copyHeaders(err.Headers, ww.Header())
 
-			return nil, Error(ww.status).WithResponse(string(ww.data))
+			return nil, err
 		} else {
 			res := Response(ww.data).WithHTTPStatus(ww.status)
 			copyHeaders(res.Headers, ww.Header())
