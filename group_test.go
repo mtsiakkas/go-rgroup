@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -223,7 +222,14 @@ func TestOptions(t *testing.T) {
 	}
 
 	for _, m := range []string{http.MethodGet, http.MethodOptions, http.MethodPost} {
-		if !slices.Contains(opts, m) {
+		found := false
+		for _, o := range opts {
+			if o == m {
+				found = true
+				break
+			}
+		}
+		if !found {
 			t.Logf("unexpected opts: %s", opts)
 			t.Fail()
 		}
@@ -247,7 +253,14 @@ func TestOptions(t *testing.T) {
 	}
 
 	for _, m := range []string{http.MethodGet, http.MethodOptions, http.MethodPost} {
-		if !slices.Contains(opts, m) {
+		found := false
+		for _, o := range opts {
+			if o == m {
+				found = true
+			}
+
+		}
+		if !found {
 			t.Logf("unexpected opts: %s", opts)
 			t.Fail()
 		}
@@ -315,7 +328,21 @@ func TestEmptyGroup(t *testing.T) {
 	}
 
 	opts = g.MethodsAllowed()
-	if len(opts) != 2 || !slices.Contains(opts, "OPTIONS") || !slices.Contains(opts, "GET") {
+	foundGet := false
+	foundOpts := false
+	if len(opts) != 2 {
+		t.Logf("unexpected opts: %s", opts)
+		t.Fail()
+	}
+	for _, o := range opts {
+		switch o {
+		case "OPTIONS":
+			foundOpts = true
+		case "GET":
+			foundGet = true
+		}
+	}
+	if !foundGet || !foundOpts {
 		t.Logf("unexpected opts: %s", opts)
 		t.Fail()
 	}
