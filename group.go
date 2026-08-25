@@ -163,7 +163,7 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 			switch {
 			case ok:
 				l.Response, l.err = f(w, req)
-			case !ok && req.Method == http.MethodOptions:
+			case req.Method == http.MethodOptions:
 				l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
 			default:
 				l.err = Error(http.StatusMethodNotAllowed)
