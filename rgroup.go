@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"runtime/debug"
-	"strings"
 )
 
 const (
@@ -61,11 +60,7 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 		return 0
 	}
 
-	if len(res.Headers) > 0 {
-		for h, v := range res.Headers {
-			w.Header().Add(h, v)
-		}
-	}
+	copyHeaders(w.Header(), res.Headers)
 
 	if _, ok := res.Data.([]byte); !ok && Config.Envelope.enabled {
 		env := res.ToEnvelope()
@@ -183,10 +178,18 @@ func fromHandler(h http.Handler) Handler {
 			return nil, Error(ww.status).WithResponse(string(ww.data))
 		} else {
 			res := Response(ww.data).WithHTTPStatus(ww.status)
-			for k, v := range ww.Header() {
-				res.WithHeader(k, strings.Join(v, ","))
-			}
+			copyHeaders(res.Headers, ww.Header())
+
 			return res, nil
+		}
+	}
+}
+
+// Add all values of src to dst, keeping any values already present in dst.
+func copyHeaders(dst http.Header, src http.Header) {
+	for k, vs := range src {
+		for _, v := range vs {
+			dst.Add(k, v)
 		}
 	}
 }

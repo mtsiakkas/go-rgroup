@@ -11,7 +11,7 @@ func Response(data any) *HandlerResponse {
 		Data:       data,
 		HTTPStatus: http.StatusOK,
 		LogMessage: "",
-		Headers:    map[string]string{},
+		Headers:    http.Header{},
 	}
 
 	return &res
@@ -21,7 +21,7 @@ type HandlerResponse struct {
 	Data       any
 	HTTPStatus int
 	LogMessage string
-	Headers    map[string]string
+	Headers    http.Header
 }
 
 // Set HTTP status code
@@ -38,14 +38,31 @@ func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerRespo
 	return r
 }
 
+// Set a response header, replacing any existing values for the header.
 func (r *HandlerResponse) WithHeader(header string, value string) *HandlerResponse {
-	r.Headers[header] = value
+	if r.Headers == nil {
+		r.Headers = http.Header{}
+	}
+
+	r.Headers.Set(header, value)
 
 	return r
 }
 
+// Append a value to a response header, keeping any existing values.
+func (r *HandlerResponse) AddHeader(header string, value string) *HandlerResponse {
+	if r.Headers == nil {
+		r.Headers = http.Header{}
+	}
+
+	r.Headers.Add(header, value)
+
+	return r
+}
+
+// Delete all values of a response header.
 func (r *HandlerResponse) DeleteHeader(header string) *HandlerResponse {
-	delete(r.Headers, header)
+	r.Headers.Del(header)
 
 	return r
 }
