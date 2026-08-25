@@ -60,6 +60,19 @@ func (r *HandlerResponse) AddHeader(header string, value string) *HandlerRespons
 	return r
 }
 
+// Append a Set-Cookie header to the response.
+func (r *HandlerResponse) SetCookie(cookie *http.Cookie) *HandlerResponse {
+	if cookie == nil {
+		return r
+	}
+
+	if v := cookie.String(); v != "" {
+		r.AddHeader("Set-Cookie", v)
+	}
+
+	return r
+}
+
 // Delete all values of a response header.
 func (r *HandlerResponse) DeleteHeader(header string) *HandlerResponse {
 	r.Headers.Del(header)
