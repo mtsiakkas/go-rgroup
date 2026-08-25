@@ -68,6 +68,9 @@ func TestMuxAddHandlers(t *testing.T) {
 	}
 	routes := []TestRoute{
 		TestRoute{method: http.MethodPost, route: "/g1"},
+		TestRoute{method: http.MethodGet, route: "/g1"},
+		TestRoute{method: http.MethodPost, route: "/g2"},
+		TestRoute{method: http.MethodGet, route: "/g2"},
 	}
 
 	for _, m := range routes {
