@@ -49,7 +49,7 @@ func TestGlobalLogger(t *testing.T) {
 
 func TestLogOptions(t *testing.T) {
 	Config.SetLogOptionsRequests(false)
-	if Config.logOptions {
+	if config.logOptions {
 		t.Log("expected Config.logOptions = false")
 		t.Fail()
 	}
@@ -60,11 +60,11 @@ func TestSetPrewriter(t *testing.T) {
 		return Response(hr.Data).WithHTTPStatus(http.StatusAccepted)
 	})
 
-	if Config.prewriter == nil {
+	if config.prewriter == nil {
 		t.Logf("expected not nil prewriter")
 		t.Fail()
 	} else {
-		r := Config.prewriter(nil, Response("test"))
+		r := config.prewriter(nil, Response("test"))
 		if r.Data.(string) != "test" || r.HTTPStatus != http.StatusAccepted {
 			t.Logf("unexpected reponse: %v", r)
 			t.Fail()
@@ -74,13 +74,13 @@ func TestSetPrewriter(t *testing.T) {
 }
 
 func TestForwardErrorLog(t *testing.T) {
-	if Config.forwardErrorLog == true {
+	if config.forwardErrorLog == true {
 		t.Log("expected forwardErrorLog == false")
 		t.Fail()
 	}
 
 	Config.SetForwardErrorLog(true)
-	if Config.forwardErrorLog != true {
+	if config.forwardErrorLog != true {
 		t.Log("expected forwardErrorLog == true")
 		t.Fail()
 	}
@@ -90,35 +90,35 @@ func TestForwardErrorLog(t *testing.T) {
 }
 
 func TestEnvelopeConfig(t *testing.T) {
-	if Config.Envelope.enabled {
+	if config.envelope.enabled {
 		t.Log("expected Config.envelopeResponse = nil")
 		t.Fail()
 	}
 
 	Config.Envelope.Enable()
-	if !Config.Envelope.enabled {
+	if !config.envelope.enabled {
 		t.Log("expected Config.envelopeResponse not nil")
 		t.Fail()
 	}
 
 	Config.Envelope.SetForwardHTTPStatus(true)
-	if !Config.Envelope.enabled {
+	if !config.envelope.enabled {
 		t.Log("expected Config.envelopeResponse not nil")
 		t.Fail()
-		if !Config.Envelope.forwardHTTPStatus {
+		if !config.envelope.forwardHTTPStatus {
 			t.Log("expected Config.envelopeResponse.forwardHTTPStatus = true")
 			t.Fail()
 		}
 	}
 
 	Config.Envelope.SetForwardLogMessage(true)
-	if !Config.Envelope.forwardLogMessage {
+	if !config.envelope.forwardLogMessage {
 		t.Log("expected Config.envelopeResponse.forwardLogMessage = true")
 		t.Fail()
 	}
 
 	Config.Envelope.Disable()
-	if Config.Envelope.enabled {
+	if config.envelope.enabled {
 		t.Log("expected Config.Envelope.enabled=false")
 		t.Fail()
 	}
@@ -199,7 +199,6 @@ func TestLockOnMake(t *testing.T) {
 			t.Logf("unexpected response: %s", b2)
 			t.Fail()
 		}
-		Config.lockOnMake = true
+		config.lockOnMake = true
 	})
-
 }

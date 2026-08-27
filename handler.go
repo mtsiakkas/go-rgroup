@@ -18,7 +18,7 @@ func (h Handler) applyMiddleware(middleware []Middleware) Handler {
 
 func (h Handler) ToHandlerFunc() http.HandlerFunc {
 
-	logger := Config.logger
+	logger := config.logger
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)

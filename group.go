@@ -74,7 +74,7 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) {
 	h.mtx.Lock()
 	defer h.mtx.Unlock()
 
-	if Config.lockOnMake && h.h != nil {
+	if config.lockOnMake && h.h != nil {
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
 	h.mtx.Lock()
 	defer h.mtx.Unlock()
 
-	if Config.lockOnMake && h.h != nil {
+	if config.lockOnMake && h.h != nil {
 		return h
 	}
 
@@ -139,13 +139,13 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 	h.mtx.Lock()
 	defer h.mtx.Unlock()
 
-	if Config.lockOnMake && h.h != nil {
+	if config.lockOnMake && h.h != nil {
 		return h.h
 	}
 
 	// set handler request logger
 	if h.logger == nil {
-		h.logger = Config.logger
+		h.logger = config.logger
 	}
 
 	logger := h.logger

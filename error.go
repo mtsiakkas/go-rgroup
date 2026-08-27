@@ -115,7 +115,7 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 		}
 	}
 
-	if Config.Envelope.forwardLogMessage {
+	if config.envelope.forwardLogMessage {
 		env.Status.Message = toPtr(e.Error())
 	}
 

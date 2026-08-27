@@ -33,10 +33,10 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 
 	copyHeaders(w.Header(), err.Headers)
 
-	if Config.Envelope.enabled {
+	if config.envelope.enabled {
 		env := err.ToEnvelope()
 
-		if Config.Envelope.forwardHTTPStatus {
+		if config.envelope.forwardHTTPStatus {
 			w.WriteHeader(err.HTTPStatus)
 		}
 
@@ -46,7 +46,7 @@ func writeErr(w http.ResponseWriter, err *HandlerError) int {
 	w.WriteHeader(err.HTTPStatus)
 
 	res := err.Response
-	if errLog := err.Error(); Config.forwardErrorLog && errLog != "" {
+	if errLog := err.Error(); config.forwardErrorLog && errLog != "" {
 		res = fmt.Sprintf("%s: %s", res, errLog)
 	}
 
@@ -64,10 +64,10 @@ func writeRes(w http.ResponseWriter, res *HandlerResponse) int {
 
 	copyHeaders(w.Header(), res.Headers)
 
-	if _, ok := res.Data.([]byte); !ok && Config.Envelope.enabled {
+	if _, ok := res.Data.([]byte); !ok && config.envelope.enabled {
 		env := res.ToEnvelope()
 
-		if Config.Envelope.forwardHTTPStatus && (res.HTTPStatus != http.StatusOK) {
+		if config.envelope.forwardHTTPStatus && (res.HTTPStatus != http.StatusOK) {
 			w.WriteHeader(res.HTTPStatus)
 		}
 
@@ -113,7 +113,7 @@ func write(w http.ResponseWriter, d any) int {
 func logAndWrite(w http.ResponseWriter, l *LoggerData, logger func(*LoggerData)) {
 
 	defer func() {
-		if l.Request.Method != http.MethodOptions || Config.logOptions {
+		if l.Request.Method != http.MethodOptions || config.logOptions {
 			l.Duration()
 			logger(l)
 		}
@@ -134,8 +134,8 @@ func logAndWrite(w http.ResponseWriter, l *LoggerData, logger func(*LoggerData))
 		return
 	}
 
-	if Config.prewriter != nil {
-		l.Response = Config.prewriter(&l.Request, l.Response)
+	if config.prewriter != nil {
+		l.Response = config.prewriter(&l.Request, l.Response)
 	}
 
 	n := writeRes(w, l.Response)
@@ -198,7 +198,7 @@ func toPtr[T any](t T) *T {
 }
 
 func recoverPanic(l *LoggerData) {
-	if !Config.recoverPanics {
+	if !config.recoverPanics {
 		return
 	}
 

@@ -7,12 +7,13 @@ import (
 
 type globalConfig struct {
 	logOptions      bool
-	Envelope        envelopeOptions
+	envelope        envelopeOptions
 	logger          func(*LoggerData)
 	prewriter       func(*http.Request, *HandlerResponse) *HandlerResponse
 	forwardErrorLog bool
 	lockOnMake      bool
 	recoverPanics   bool
+	locked          bool
 }
 
 type envelopeOptions struct {
@@ -21,93 +22,86 @@ type envelopeOptions struct {
 	forwardLogMessage bool
 }
 
-var mtx = sync.Mutex{}
+type envelopeSetter struct{}
+type configSetter struct{ Envelope envelopeSetter }
+
+// Config holds the global configuration for the package.
+// All global configurations are set by calling methods on Config.
+var Config configSetter
+var config = defaultConfig
+
+func checkLock() {
+	if config.locked {
+		panic("[rgroup] config mutation after Config.Lock")
+	}
+}
+
+// Lock global config
+// Any further mutations panic
+func (c configSetter) Lock() {
+	config.locked = true
+}
+
+// Unlock global config
+func (c configSetter) Unlock() {
+	config.locked = false
+}
+
+func resetConfig() {
+	config = defaultConfig
+}
 
 var defaultConfig = globalConfig{
 	logOptions:      true,
-	Envelope:        envelopeOptions{},
+	envelope:        envelopeOptions{},
 	logger:          defaultLogger,
 	prewriter:       nil,
 	forwardErrorLog: false,
-	lockOnMake:      true,
 	recoverPanics:   true,
+	lockOnMake:      true,
 }
 
 // Enable envelope response. Disabled by default
-func (e *envelopeOptions) Enable() {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	e.enabled = true
+func (e envelopeSetter) Enable() {
+	checkLock()
+	config.envelope.enabled = true
 }
 
 // Disable envelope response. Disabled by default
-func (e *envelopeOptions) Disable() {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	e.enabled = false
+func (e envelopeSetter) Disable() {
+	checkLock()
+	config.envelope.enabled = false
 }
 
 // Forward the log message to the client.
 // Default: false
-func (e *envelopeOptions) SetForwardLogMessage(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	e.forwardLogMessage = b
+func (e envelopeSetter) SetForwardLogMessage(b bool) {
+	checkLock()
+	config.envelope.forwardLogMessage = b
 }
 
 // Forward http status code to client.
 // Default: false
-func (e *envelopeOptions) SetForwardHTTPStatus(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	e.forwardHTTPStatus = b
-
-}
-
-// Config holds the global configuration for the package.
-// All global configurations are set by calling methods on Config.
-var Config globalConfig = defaultConfig
-
-// Reset the global config to the default values.
-func (c *globalConfig) Reset() {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	*c = defaultConfig
+func (e envelopeSetter) SetForwardHTTPStatus(b bool) {
+	checkLock()
+	config.envelope.forwardHTTPStatus = b
 }
 
 // Set the global logger function.
-func (c *globalConfig) SetGlobalLogger(p func(*LoggerData)) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
+func (c configSetter) SetGlobalLogger(p func(*LoggerData)) {
+	checkLock()
 	if p == nil {
 		p = func(l *LoggerData) {}
 	}
 
-	c.logger = p
+	config.logger = p
 }
 
 // Call logger function on OPTIONS requests.
 // Default: true
-func (c *globalConfig) SetLogOptionsRequests(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	c.logOptions = b
-}
-
-// Set global prewriter function.
-// This can be used to further process the response before writing to the client.
-func (c *globalConfig) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	c.prewriter = f
+func (c configSetter) SetLogOptionsRequests(b bool) {
+	checkLock()
+	config.logOptions = b
 }
 
 var lockOnMakeOnce sync.Once
@@ -115,13 +109,17 @@ var lockOnMakeOnce sync.Once
 // Lock HandlerGroup after the first call to HandlerGroup.Make.
 // Can only be called once.
 // Default: true
-func (c *globalConfig) LockOnMake(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
+func (c configSetter) LockOnMake(b bool) {
 	lockOnMakeOnce.Do(func() {
-		c.lockOnMake = b
+		config.lockOnMake = b
 	})
+}
+
+// Set global prewriter function.
+// This can be used to further process the response before writing to the client.
+func (c configSetter) SetPrewriter(f func(*http.Request, *HandlerResponse) *HandlerResponse) {
+	checkLock()
+	config.prewriter = f
 }
 
 // Recover panics raised by handlers and respond with 500 Internal Server Error.
@@ -130,18 +128,14 @@ func (c *globalConfig) LockOnMake(b bool) {
 // When disabled, panics propagate to net/http, which aborts the connection
 // without calling the logger.
 // Default: true
-func (c *globalConfig) SetRecoverPanics(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	c.recoverPanics = b
+func (c configSetter) SetRecoverPanics(b bool) {
+	checkLock()
+	config.recoverPanics = b
 }
 
 // Send error log message to client.
 // This is only respected if envelope responses are not enabled.
-func (c *globalConfig) SetForwardErrorLog(b bool) {
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	c.forwardErrorLog = b
+func (c configSetter) SetForwardErrorLog(b bool) {
+	checkLock()
+	config.forwardErrorLog = b
 }
