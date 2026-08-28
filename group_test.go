@@ -11,6 +11,7 @@ import (
 )
 
 func TestRecoverPanic(t *testing.T) {
+	t.Cleanup(resetConfig)
 	t.Run("recovered", func(t *testing.T) {
 		g := New()
 		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
@@ -108,7 +109,6 @@ func TestRecoverPanic(t *testing.T) {
 	})
 
 	t.Run("disabled", func(t *testing.T) {
-		defer Config.Reset()
 		defer func() {
 			if r := recover(); r != "test_panic" {
 				t.Logf("expected the panic to propagate, got: %v", r)
@@ -128,6 +128,7 @@ func TestRecoverPanic(t *testing.T) {
 }
 
 func TestMiddleware(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	h := func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("test"), nil
@@ -179,6 +180,7 @@ func TestMiddleware(t *testing.T) {
 }
 
 func TestAddHandlers(t *testing.T) {
+	t.Cleanup(resetConfig)
 	g := New()
 	g.AddHandler("BATCH", func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("BATCH"), nil
@@ -208,6 +210,7 @@ func TestAddHandlers(t *testing.T) {
 }
 
 func TestOptions(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	g := New()
 	g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) { return Response("GET"), nil })
@@ -294,6 +297,7 @@ func TestOptions(t *testing.T) {
 }
 
 func TestEmptyGroup(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	g := HandlerGroup{}
 	h := g.Make()
@@ -345,6 +349,7 @@ func TestEmptyGroup(t *testing.T) {
 }
 
 func TestGroupLogger(t *testing.T) {
+	t.Cleanup(resetConfig)
 	g := New()
 	g.SetLogger(func(ld *LoggerData) {
 		fmt.Printf("LOGGER: %s", ld.Message())
@@ -367,6 +372,7 @@ func TestGroupLogger(t *testing.T) {
 }
 
 func TestGroupErrorResponse(t *testing.T) {
+	t.Cleanup(resetConfig)
 	t.Run("rgroup.Error", func(t *testing.T) {
 		g := New()
 		g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
@@ -411,6 +417,7 @@ func TestGroupErrorResponse(t *testing.T) {
 }
 
 func TestNetHttpHandler(t *testing.T) {
+	t.Cleanup(resetConfig)
 	g := New()
 	g.Get(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("GET"), nil
@@ -468,6 +475,7 @@ func TestNetHttpHandler(t *testing.T) {
 }
 
 func TestGroupPrewriter(t *testing.T) {
+	t.Cleanup(resetConfig)
 	Config.SetGlobalLogger(func(ld *LoggerData) { fmt.Println(ld.Message()) })
 	Config.SetPrewriter(func(r *http.Request, hr *HandlerResponse) *HandlerResponse {
 		return Response(hr.Data).WithMessage("test prewriter")

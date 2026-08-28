@@ -6,6 +6,7 @@ import (
 )
 
 func TestResponse(t *testing.T) {
+	t.Cleanup(resetConfig)
 	r := Response(nil)
 	if r.Data != nil {
 		t.Log("r.Data not nil")
@@ -72,6 +73,4 @@ func TestResponse(t *testing.T) {
 		t.Logf("unexpected error: %s", *env.Status.Error)
 		t.Fail()
 	}
-
-	Config.Reset()
 }

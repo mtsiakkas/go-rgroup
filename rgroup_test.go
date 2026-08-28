@@ -68,6 +68,7 @@ func captureOutput(f func()) string {
 }
 
 func TestDefaultLogger(t *testing.T) {
+	t.Cleanup(resetConfig)
 	l := fromRequest(*httptest.NewRequest(http.MethodGet, "/", nil))
 
 	r := captureOutput(func() { defaultLogger(l) })
@@ -93,6 +94,7 @@ func TestDefaultLogger(t *testing.T) {
 }
 
 func TestWriteErr(t *testing.T) {
+	t.Cleanup(resetConfig)
 	rr := httptest.NewRecorder()
 	n := writeErr(rr, nil)
 	if n != 0 {
@@ -165,10 +167,10 @@ func TestWriteErr(t *testing.T) {
 		}
 
 	})
-	Config.Reset()
 }
 
 func TestWriteRes(t *testing.T) {
+	t.Cleanup(resetConfig)
 	rr := httptest.NewRecorder()
 
 	res := Response("test data").
@@ -214,11 +216,10 @@ func TestWriteRes(t *testing.T) {
 		t.Logf("unexpected response: %s", rr.Body.String())
 		t.Fail()
 	}
-
-	Config.Reset()
 }
 
 func TestWrite(t *testing.T) {
+	t.Cleanup(resetConfig)
 	t.Run("string", func(t *testing.T) {
 		rr := httptest.NewRecorder()
 		n := write(rr, "test string")

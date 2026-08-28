@@ -8,6 +8,7 @@ import (
 )
 
 func TestGlobalLogger(t *testing.T) {
+	t.Cleanup(resetConfig)
 	t.Run("nil logger", func(t *testing.T) {
 		Config.SetGlobalLogger(nil)
 
@@ -21,8 +22,6 @@ func TestGlobalLogger(t *testing.T) {
 			t.Logf("unexpected log: %s", res)
 			t.Fail()
 		}
-
-		Config.Reset()
 	})
 
 	t.Run("global", func(t *testing.T) {
@@ -41,13 +40,12 @@ func TestGlobalLogger(t *testing.T) {
 			t.Logf("unexpected log: %s", res)
 			t.Fail()
 		}
-
-		Config.Reset()
 	})
 
 }
 
 func TestLogOptions(t *testing.T) {
+	t.Cleanup(resetConfig)
 	Config.SetLogOptionsRequests(false)
 	if config.logOptions {
 		t.Log("expected Config.logOptions = false")
@@ -56,6 +54,7 @@ func TestLogOptions(t *testing.T) {
 }
 
 func TestSetPrewriter(t *testing.T) {
+	t.Cleanup(resetConfig)
 	Config.SetPrewriter(func(r *http.Request, hr *HandlerResponse) *HandlerResponse {
 		return Response(hr.Data).WithHTTPStatus(http.StatusAccepted)
 	})
@@ -74,6 +73,7 @@ func TestSetPrewriter(t *testing.T) {
 }
 
 func TestForwardErrorLog(t *testing.T) {
+	t.Cleanup(resetConfig)
 	if config.forwardErrorLog == true {
 		t.Log("expected forwardErrorLog == false")
 		t.Fail()
@@ -84,12 +84,10 @@ func TestForwardErrorLog(t *testing.T) {
 		t.Log("expected forwardErrorLog == true")
 		t.Fail()
 	}
-
-	Config.Reset()
-
 }
 
 func TestEnvelopeConfig(t *testing.T) {
+	t.Cleanup(resetConfig)
 	if config.envelope.enabled {
 		t.Log("expected Config.envelopeResponse = nil")
 		t.Fail()
@@ -122,8 +120,4 @@ func TestEnvelopeConfig(t *testing.T) {
 		t.Log("expected Config.Envelope.enabled=false")
 		t.Fail()
 	}
-
-	Config.Reset()
-}
-
 }

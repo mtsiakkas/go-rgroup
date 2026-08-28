@@ -8,6 +8,7 @@ import (
 )
 
 func TestError(t *testing.T) {
+	t.Cleanup(resetConfig)
 	e := Error(http.StatusInternalServerError)
 	if !errorCompare(HandlerError{
 		LogMessage: "",
@@ -74,6 +75,7 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorEnvelope(t *testing.T) {
+	t.Cleanup(resetConfig)
 	Config.Envelope.Enable()
 	err := HandlerError{
 		HTTPStatus: http.StatusNotAcceptable,
@@ -106,8 +108,6 @@ func TestErrorEnvelope(t *testing.T) {
 	target.Status.Error = toPtr("unkown error")
 	target.Status.HTTPStatus = 333
 	envCompare(t, err.ToEnvelope(), &target)
-
-	Config.Reset()
 }
 
 func envCompare(t *testing.T, env *Envelope, target *Envelope) {

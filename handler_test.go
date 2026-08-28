@@ -8,6 +8,7 @@ import (
 )
 
 func TestHandlerMiddleware(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	h := Handler(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("test"), nil
@@ -39,6 +40,7 @@ func TestHandlerMiddleware(t *testing.T) {
 }
 
 func TestToHandlerFunc(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	h := Handler(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("test"), nil

@@ -7,6 +7,7 @@ import (
 )
 
 func TestLoggerData(t *testing.T) {
+	t.Cleanup(resetConfig)
 	req := httptest.NewRequest(http.MethodGet, "/test?t=1", nil)
 
 	l := fromRequest(*req)

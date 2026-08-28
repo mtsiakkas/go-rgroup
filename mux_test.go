@@ -7,6 +7,7 @@ import (
 )
 
 func TestMuxMiddleware(t *testing.T) {
+	t.Cleanup(resetConfig)
 
 	h := func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("test"), nil
@@ -40,6 +41,7 @@ func TestMuxMiddleware(t *testing.T) {
 }
 
 func TestMuxAddHandlers(t *testing.T) {
+	t.Cleanup(resetConfig)
 	g1 := New()
 	g1.Post(func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error) {
 		return Response("POST /g1"), nil
