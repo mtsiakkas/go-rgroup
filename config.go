@@ -125,3 +125,9 @@ func (c configSetter) SetForwardErrorLog(b bool) {
 	checkLock()
 	config.forwardErrorLog = b
 }
+
+func ensureLocked() {
+	if !config.locked {
+		panic("[rgroup] config not locked")
+	}
+}

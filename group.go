@@ -2,8 +2,9 @@ package rgroup
 
 import (
 	"net/http"
+	"sort"
 	"strings"
-	"sync"
+	"sync/atomic"
 )
 
 // Middleware function signature
@@ -14,36 +15,57 @@ type Middleware func(Handler) Handler
 type HandlerMap map[string]Handler
 
 // HandlerGroup contains all Handlers, Middleware and the custom logger for a route.
-// A HandlerGroup is safe for concurrent use.
+// All setup (handlers, middleware, logger) should be completed before attempting to serve from the group.
 type HandlerGroup struct {
-	mtx        sync.Mutex
 	h          http.HandlerFunc
 	handlers   HandlerMap
+	raw        HandlerMap
 	logger     func(*LoggerData)
 	middleware []Middleware
+	allow      []string
+	frozen     atomic.Bool
 }
 
-// MethodsAllowed returns a string slice with all http verbs handled by the group
-func (h *HandlerGroup) MethodsAllowed() []string {
-	h.mtx.Lock()
-	defer h.mtx.Unlock()
+// MethodsAllowed returns a comma-separated string with all http verbs handled by the group
+func (h *HandlerGroup) MethodsAllowed() string {
+	return strings.Join(h.allow, ",")
+}
 
-	opts := make([]string, len(h.handlers)+1)
+func (h *HandlerGroup) methodsAllowed() {
+	opts := make([]string, 1)
 	opts[0] = http.MethodOptions
 
-	i := 1
-	for k := range h.handlers {
-		opts[i] = k
-		i++
+	for k := range h.raw {
+		if k == http.MethodOptions {
+			continue
+		}
+		opts = append(opts, k)
+	}
+	sort.Strings(opts)
+	h.allow = opts
+}
+
+func (h *HandlerGroup) checkFrozen() {
+	if h.frozen.Load() {
+		panic("[rgroup] HandlerGroup build after serve")
+	}
+}
+
+func (h *HandlerGroup) initMaps() {
+	if h.handlers == nil {
+		h.handlers = make(HandlerMap)
 	}
 
-	return opts
+	if h.raw == nil {
+		h.raw = make(HandlerMap)
+	}
 }
 
 // Create a new empty handler group
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
-	h.handlers = make(HandlerMap)
+	h.initMaps()
+	h.build()
 
 	return h
 }
@@ -51,40 +73,29 @@ func New() *HandlerGroup {
 // Creates a new HandlerGroup from a HandlerMap.
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h := new(HandlerGroup)
-	h.handlers = make(HandlerMap)
 
+	h.initMaps()
 	for k, f := range handlers {
-		h.AddHandler(k, f)
+		h.raw[strings.ToUpper(k)] = f
 	}
 
+	h.build()
 	return h
 }
 
 // Set a local logger function to the HandlerGroup.
 // This will replace the global logger for the specified route.
 func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
-	h.mtx.Lock()
-	defer h.mtx.Unlock()
-
+	h.initMaps()
 	h.logger = p
+	h.build()
 }
 
 // Adds a new Handler to the HandlerGroup.
 func (h *HandlerGroup) AddHandler(method string, handler Handler) {
-	h.mtx.Lock()
-	defer h.mtx.Unlock()
-
-	if h.h != nil {
-		return
-	}
-
-	if h.handlers == nil {
-		h.handlers = make(HandlerMap)
-	}
-
-	m := strings.ToUpper(method)
-
-	h.handlers[m] = handler.applyMiddleware(h.middleware)
+	h.initMaps()
+	h.raw[strings.ToUpper(method)] = handler
+	h.build()
 }
 
 // Utility function to add POST Handler to HandlerGroup
@@ -114,41 +125,31 @@ func (h *HandlerGroup) Get(handler Handler) {
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
 func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
-	h.mtx.Lock()
-	defer h.mtx.Unlock()
-
-	if h.h != nil {
-		return h
-	}
-
+	h.initMaps()
 	if h.middleware == nil {
 		h.middleware = make([]Middleware, 0)
 	}
 
 	h.middleware = append(h.middleware, m...)
 
-	for method, f := range h.handlers {
-		h.handlers[method] = f.applyMiddleware(m)
-	}
+	h.build()
 
 	return h
 }
 
-// Generates an http.HandlerFunc from the HandlerGroup.
-func (h *HandlerGroup) Make() http.HandlerFunc {
-	h.mtx.Lock()
-	defer h.mtx.Unlock()
+func (h *HandlerGroup) build() {
+	ensureLocked()
+	h.checkFrozen()
+	h.methodsAllowed()
 
-	if h.h != nil {
-		return h.h
+	logger := config.logger
+	if h.logger != nil {
+		logger = h.logger
 	}
 
-	// set handler request logger
-	if h.logger == nil {
-		h.logger = config.logger
+	for k, f := range h.raw {
+		h.handlers[k] = f.applyMiddleware(h.middleware)
 	}
-
-	logger := h.logger
 
 	h.h = func(w http.ResponseWriter, req *http.Request) {
 		l := fromRequest(*req)
@@ -156,26 +157,24 @@ func (h *HandlerGroup) Make() http.HandlerFunc {
 		func() {
 			defer recoverPanic(l)
 
-			h.mtx.Lock()
 			f, ok := h.handlers[req.Method]
-			h.mtx.Unlock()
 
 			switch {
 			case ok:
 				l.Response, l.err = f(w, req)
 			case req.Method == http.MethodOptions:
-				l.Response = Response(nil).WithHeader("Allow", strings.Join(h.MethodsAllowed(), ","))
+				l.Response = Response(nil).WithHeader("Allow", h.MethodsAllowed())
 			default:
-				l.err = Error(http.StatusMethodNotAllowed)
+				l.err = Error(http.StatusMethodNotAllowed).WithHeader("Allow", h.MethodsAllowed())
 			}
 		}()
 
 		logAndWrite(w, l, logger)
 	}
-
-	return h.h
 }
 
 func (h *HandlerGroup) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	h.Make()(w, req)
+	ensureLocked()
+	h.frozen.CompareAndSwap(false, true)
+	h.h(w, req)
 }
