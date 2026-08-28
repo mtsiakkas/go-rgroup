@@ -2,7 +2,6 @@ package rgroup
 
 import (
 	"net/http"
-	"sync"
 )
 
 type globalConfig struct {
@@ -11,7 +10,6 @@ type globalConfig struct {
 	logger          func(*LoggerData)
 	prewriter       func(*http.Request, *HandlerResponse) *HandlerResponse
 	forwardErrorLog bool
-	lockOnMake      bool
 	recoverPanics   bool
 	locked          bool
 }
@@ -58,7 +56,6 @@ var defaultConfig = globalConfig{
 	prewriter:       nil,
 	forwardErrorLog: false,
 	recoverPanics:   true,
-	lockOnMake:      true,
 }
 
 // Enable envelope response. Disabled by default
@@ -102,17 +99,6 @@ func (c configSetter) SetGlobalLogger(p func(*LoggerData)) {
 func (c configSetter) SetLogOptionsRequests(b bool) {
 	checkLock()
 	config.logOptions = b
-}
-
-var lockOnMakeOnce sync.Once
-
-// Lock HandlerGroup after the first call to HandlerGroup.Make.
-// Can only be called once.
-// Default: true
-func (c configSetter) LockOnMake(b bool) {
-	lockOnMakeOnce.Do(func() {
-		config.lockOnMake = b
-	})
 }
 
 // Set global prewriter function.
