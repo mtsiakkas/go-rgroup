@@ -1,3 +1,3 @@
 module github.com/mtsiakkas/go-rgroup
 
-go 1.18
+go 1.22.0
