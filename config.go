@@ -95,7 +95,7 @@ func (c configSetter) SetGlobalLogger(p func(*LoggerData)) {
 }
 
 // Call logger function on OPTIONS requests.
-// Default: true
+// Default: false
 func (c configSetter) SetLogOptionsRequests(b bool) {
 	checkLock()
 	config.logOptions = b
