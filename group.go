@@ -84,19 +84,14 @@ func New() *HandlerGroup {
 // Creates a new HandlerGroup from a HandlerMap.
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h := new(HandlerGroup)
-
 	h.init()
 	for m, f := range handlers {
-		if f == nil {
-			panic("[rgroup] attempt to add nil Handler to HandlerGroup")
-		}
-		if m == "" {
-			panic("[rgroup] attempt to add Handler without method")
-		}
+		h.validate(m, f)
 		h.raw[strings.ToUpper(m)] = f
 	}
 
 	h.build()
+
 	return h
 }
 
@@ -110,20 +105,24 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) *HandlerGroup {
 	return h
 }
 
-// Set Handler for method.
-// The method is normalized to upper case.
-// Panics if method is already set
-func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
+func (h *HandlerGroup) validate(method string, handler Handler) {
 	if handler == nil {
 		panic("[rgroup.HandlerGroup] nil Handler")
 	}
 	if method == "" {
 		panic("[rgroup.HandlerGroup] Handler without method")
 	}
-	h.init()
 	if _, ok := h.raw[strings.ToUpper(method)]; ok {
 		panic("[rgroup.HandlerGroup] duplicate Handler")
 	}
+}
+
+// Set Handler for method.
+// The method is normalized to upper case.
+// Panics if method is already set
+func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
+	h.init()
+	h.validate(method, handler)
 	h.raw[strings.ToUpper(method)] = handler
 	h.build()
 
