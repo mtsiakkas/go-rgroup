@@ -7,6 +7,11 @@ import (
 // Handler function signuture
 type Handler func(w http.ResponseWriter, req *http.Request) (*HandlerResponse, error)
 
+type handlers interface {
+	setInheritedMiddleware([]Middleware)
+	http.Handler
+}
+
 func (h Handler) applyMiddleware(middleware []Middleware) Handler {
 	f := h
 	for _, m := range middleware {

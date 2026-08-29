@@ -2,83 +2,111 @@ package rgroup
 
 import (
 	"net/http"
-	"sync"
+	"sync/atomic"
 )
 
-// HandlerMux is safe for concurrent use.
+// HandlerMux is similar to http.ServeMux
+// All setup (handlers, middleware) should be completed before attempting to serve
 type HandlerMux struct {
-	mtx        sync.Mutex
-	built      http.Handler
+	h          http.Handler
+	m          *http.ServeMux
 	handlers   map[string]http.Handler
 	middleware []Middleware
+	inherited  []Middleware
 	prefix     string
+	frozen     atomic.Bool
+}
+
+func (m *HandlerMux) checkFrozen() {
+	if m.frozen.Load() {
+		panic("[rgroup] HandlerMux build after serve")
+	}
 }
 
 // Create a new empty HandlerMux
 func NewServeMux() *HandlerMux {
-	h := new(HandlerMux)
-	h.handlers = make(map[string]http.Handler)
-	h.middleware = make([]Middleware, 0)
+	m := new(HandlerMux)
+	m.init()
+	m.build()
 
-	return h
+	return m
+}
+
+var _ handlers = (*HandlerMux)(nil)
+
+func (m *HandlerMux) init() {
+	if m.handlers == nil {
+		m.handlers = make(map[string]http.Handler)
+	}
+	if m.middleware == nil {
+		m.middleware = make([]Middleware, 0)
+	}
+	if m.inherited == nil {
+		m.inherited = make([]Middleware, 0)
+	}
 }
 
 func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-
+	m.init()
 	m.prefix = prefix
+	m.build()
 	return m
 }
 
-// Add HandlerGroup
-func (m *HandlerMux) Handle(path string, h http.Handler) {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-
-	m.handlers[path] = h
-}
-
-// Add middleware to all handler groups in mux
-func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-
-	m.middleware = append(m.middleware, mid...)
-	return m
-}
-
-// Generates an http.ServeMux from the HandlerMux.
-func (m *HandlerMux) Make() http.Handler {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-
-	if m.built != nil {
-		return m.built
+// Add handlers to HandlerMux
+func (m *HandlerMux) Handle(path string, handler http.Handler) *HandlerMux {
+	if handler == nil {
+		panic("[rgroup] attempt to add nil Handler to HandlerMux")
 	}
+	if path == "" {
+		panic("[rgroup] attempt to add Handler without path")
+	}
+	m.init()
+	m.handlers[path] = handler
+	m.build()
+	return m
+}
 
-	s := http.NewServeMux()
+func (m *HandlerMux) setInheritedMiddleware(middleware []Middleware) {
+	ms := make([]Middleware, len(middleware))
+	for i, mm := range middleware {
+		ms[i] = mm
+	}
+	m.inherited = ms
+	m.build()
+}
+
+// Add middleware to all handlers in mux
+func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
+	m.init()
+	m.middleware = append(m.middleware, mid...)
+	m.build()
+	return m
+}
+
+func (m *HandlerMux) build() {
+	ensureLocked()
+	m.checkFrozen()
+
+	m.m = http.NewServeMux()
+
+	middleware := append(m.middleware, m.inherited...)
 
 	for p, h := range m.handlers {
-		var h3 http.Handler
 		switch h2 := h.(type) {
-		case *HandlerMux:
-			h2.AddMiddleware(m.middleware...)
-			h3 = h2.Make()
-		case *HandlerGroup:
-			h2.AddMiddleware(m.middleware...)
-			h3 = h2.Make()
+		case handlers:
+			h2.setInheritedMiddleware(middleware)
+			m.m.Handle(p, h2)
 		default:
-			h3 = fromHandler(h2).applyMiddleware(m.middleware).ToHandlerFunc()
+			m.m.Handle(p, fromHandler(h2).applyMiddleware(middleware).ToHandlerFunc())
 		}
-		s.Handle(p, h3)
 	}
 
-	m.built = http.StripPrefix(m.prefix, s)
-
-	return m.built
+	m.h = http.StripPrefix(m.prefix, m.m)
 }
 
 func (m *HandlerMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	m.Make().ServeHTTP(w, req)
+	ensureLocked()
+	m.frozen.CompareAndSwap(false, true)
+	m.h.ServeHTTP(w, req)
 }

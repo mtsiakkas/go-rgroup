@@ -22,9 +22,12 @@ type HandlerGroup struct {
 	raw        HandlerMap
 	logger     func(*LoggerData)
 	middleware []Middleware
+	inherited  []Middleware
 	allow      []string
 	frozen     atomic.Bool
 }
+
+var _ handlers = (*HandlerGroup)(nil)
 
 // MethodsAllowed returns a comma-separated string with all http verbs handled by the group
 func (h *HandlerGroup) MethodsAllowed() string {
@@ -51,7 +54,7 @@ func (h *HandlerGroup) checkFrozen() {
 	}
 }
 
-func (h *HandlerGroup) initMaps() {
+func (h *HandlerGroup) init() {
 	if h.handlers == nil {
 		h.handlers = make(HandlerMap)
 	}
@@ -59,12 +62,20 @@ func (h *HandlerGroup) initMaps() {
 	if h.raw == nil {
 		h.raw = make(HandlerMap)
 	}
+
+	if h.middleware == nil {
+		h.middleware = make([]Middleware, 0)
+	}
+
+	if h.inherited == nil {
+		h.inherited = make([]Middleware, 0)
+	}
 }
 
 // Create a new empty handler group
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
-	h.initMaps()
+	h.init()
 	h.build()
 
 	return h
@@ -74,9 +85,15 @@ func New() *HandlerGroup {
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h := new(HandlerGroup)
 
-	h.initMaps()
-	for k, f := range handlers {
-		h.raw[strings.ToUpper(k)] = f
+	h.init()
+	for m, f := range handlers {
+		if f == nil {
+			panic("[rgroup] attempt to add nil Handler to HandlerGroup")
+		}
+		if m == "" {
+			panic("[rgroup] attempt to add Handler without method")
+		}
+		h.raw[strings.ToUpper(m)] = f
 	}
 
 	h.build()
@@ -86,7 +103,7 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 // Set a local logger function to the HandlerGroup.
 // This will replace the global logger for the specified route.
 func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
-	h.initMaps()
+	h.init()
 	h.logger = p
 	h.build()
 }
@@ -98,8 +115,8 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) *HandlerGroup 
 	}
 	if method == "" {
 		panic("[rgroup] attempt to and Handler without method")
+	h.init()
 	}
-	h.initMaps()
 	h.raw[strings.ToUpper(method)] = handler
 	h.build()
 
@@ -136,17 +153,19 @@ func (h *HandlerGroup) Get(handler Handler) *HandlerGroup {
 	return h
 }
 
+func (h *HandlerGroup) setInheritedMiddleware(middleware []Middleware) {
+	ms := make([]Middleware, len(middleware))
+	for i, mm := range middleware {
+		ms[i] = mm
+	}
+	h.inherited = ms
+	h.build()
+}
+
 // AddMiddleware appends the given Middleware to the HandlerGroup
 func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
-	h.initMaps()
-	if h.middleware == nil {
-		h.middleware = make([]Middleware, 0)
-	}
-
 	h.middleware = append(h.middleware, m...)
-
 	h.build()
-
 	return h
 }
 
@@ -161,7 +180,7 @@ func (h *HandlerGroup) build() {
 	}
 
 	for k, f := range h.raw {
-		h.handlers[k] = f.applyMiddleware(h.middleware)
+		h.handlers[k] = f.applyMiddleware(h.middleware).applyMiddleware(h.inherited)
 	}
 
 	h.h = func(w http.ResponseWriter, req *http.Request) {
