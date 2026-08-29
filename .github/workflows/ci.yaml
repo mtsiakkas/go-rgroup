@@ -3,8 +3,8 @@ name: ci
 on: push
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  ci:
+    runs-on: codeberg-small-lazy
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v7
@@ -12,23 +12,7 @@ jobs:
           go-version-file: 'go.mod'
       - name: Build
         run: go build
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: 'go.mod'
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
       - name: Test
         run: go test ./...
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: 'go.mod'
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
