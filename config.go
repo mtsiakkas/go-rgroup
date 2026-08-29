@@ -47,10 +47,6 @@ func (c configSetter) Unlock() {
 	config.locked = false
 }
 
-func resetConfig() {
-	config = defaultConfig
-}
-
 var defaultConfig = globalConfig{
 	logOptions:      false,
 	envelope:        envelopeOptions{},

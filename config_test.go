@@ -7,6 +7,10 @@ import (
 	"testing"
 )
 
+func resetConfig() {
+	config = defaultConfig
+}
+
 func TestGlobalLogger(t *testing.T) {
 	t.Run("nil logger", func(t *testing.T) {
 		t.Cleanup(resetConfig)
