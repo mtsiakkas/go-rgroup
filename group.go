@@ -7,15 +7,21 @@ import (
 	"sync/atomic"
 )
 
-// Middleware function signature
+// Middleware wraps a Handler and returns the wrapped Handler.
 type Middleware func(Handler) Handler
 
-// HandlerMap is a wrapper around map[string]Handler.
-// Used to simplify HandlerGroup initialization.
+// HandlerMap maps http methods to the Handler serving them.
+// It is used to simplify HandlerGroup initialization.
 type HandlerMap map[string]Handler
 
 // HandlerGroup contains all Handlers, Middleware and the custom logger for a route.
-// All setup (handlers, middleware, logger) should be completed before attempting to serve from the group.
+// It dispatches on the request method, answers OPTIONS with the methods it
+// handles, and responds 405 Method Not Allowed to anything else.
+//
+// A HandlerGroup implements http.Handler and can be registered on any net/http
+// router. All setup (handlers, middleware, logger) must be completed before
+// the group serves its first request; the group is frozen by the first call to
+// ServeHTTP, and setting it up afterwards panics.
 type HandlerGroup struct {
 	h          http.HandlerFunc
 	handlers   HandlerMap
@@ -29,7 +35,8 @@ type HandlerGroup struct {
 
 var _ handlers = (*HandlerGroup)(nil)
 
-// MethodsAllowed returns a comma-separated string with all http verbs handled by the group
+// MethodsAllowed returns a comma-separated string with all http verbs handled
+// by the group, as sent in the Allow header. OPTIONS is always included.
 func (h *HandlerGroup) MethodsAllowed() string {
 	return strings.Join(h.allow, ",")
 }
@@ -72,7 +79,8 @@ func (h *HandlerGroup) init() {
 	}
 }
 
-// Create a new empty handler group
+// New creates a new empty HandlerGroup.
+// It panics if the global config has not been locked with Config.Lock.
 func New() *HandlerGroup {
 	h := new(HandlerGroup)
 	h.init()
@@ -81,7 +89,10 @@ func New() *HandlerGroup {
 	return h
 }
 
-// Creates a new HandlerGroup from a HandlerMap.
+// NewWithHandlers creates a new HandlerGroup from a HandlerMap.
+// Methods are normalized to upper case.
+// It panics if the global config has not been locked with Config.Lock, or if
+// any Handler in the map is nil or keyed by an empty method.
 func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	h := new(HandlerGroup)
 	h.init()
@@ -95,8 +106,9 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 	return h
 }
 
-// Set a local logger function to the HandlerGroup.
-// This will replace the global logger for the specified route.
+// SetLogger sets a local logger function on the HandlerGroup, replacing the
+// global logger for this route only. Passing nil restores the global logger.
+// It returns the group, so calls can be chained.
 func (h *HandlerGroup) SetLogger(p func(*LoggerData)) *HandlerGroup {
 	h.init()
 	h.logger = p
@@ -117,9 +129,10 @@ func (h *HandlerGroup) validate(method string, handler Handler) {
 	}
 }
 
-// Set Handler for method.
-// The method is normalized to upper case.
-// Panics if method is already set
+// Handle sets the Handler for method, which is normalized to upper case.
+// It returns the group, so calls can be chained.
+// It panics if handler is nil, method is empty, or the method already has a
+// Handler.
 func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
 	h.init()
 	h.validate(method, handler)
@@ -138,7 +151,12 @@ func (h *HandlerGroup) setInheritedMiddleware(middleware []Middleware) {
 	h.build()
 }
 
-// AddMiddleware appends the given Middleware to the HandlerGroup
+// AddMiddleware appends the given Middleware to the HandlerGroup, applying it
+// to every Handler in the group, including those added later.
+// The first Middleware added is the innermost, closest to the Handler; any
+// middleware inherited from a parent HandlerMux wraps all of it.
+// It returns the group, so calls can be chained, and panics if any Middleware
+// is nil.
 func (h *HandlerGroup) AddMiddleware(middleware ...Middleware) *HandlerGroup {
 	h.init()
 	for _, m := range middleware {
@@ -187,6 +205,8 @@ func (h *HandlerGroup) build() {
 	}
 }
 
+// ServeHTTP implements http.Handler.
+// The first call freezes the group; mutating it afterwards panics.
 func (h *HandlerGroup) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ensureLocked()
 	h.frozen.CompareAndSwap(false, true)

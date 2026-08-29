@@ -7,12 +7,16 @@ import (
 	"time"
 )
 
+// LoggerData is the record of a single handled request, passed to the logger
+// function once the response has been written.
+// Error is set when the Handler failed, and takes precedence over Response in
+// Message and Status.
 type LoggerData struct {
-	Timestamp    int64
-	ResponseSize int
-	Error        *HandlerError
-	Request      http.Request
-	Response     *HandlerResponse
+	Timestamp    int64            // Timestamp is the time the request was received, in Unix nanoseconds.
+	ResponseSize int              // ResponseSize is the number of bytes written to the client.
+	Error        *HandlerError    // Error is the error the Handler failed with, or nil.
+	Request      http.Request     // Request is a copy of the handled request.
+	Response     *HandlerResponse // Response is the response returned by the Handler, or nil.
 	err          error
 	time         bool
 	duration     int64
@@ -60,12 +64,12 @@ func (r *LoggerData) Status() int {
 	return http.StatusOK
 }
 
-// Path returns the base uri of the request.
+// Path returns the request uri with the query string stripped.
 func (r *LoggerData) Path() string {
 	return strings.Split(r.Request.RequestURI, "?")[0]
 }
 
-// Duration returns the time taken to handle the request.
+// Duration returns the time taken to handle the request, in nanoseconds.
 // This method is idempotent; the duration is calculated and stored on first call.
 func (r *LoggerData) Duration() int64 {
 	if !r.time {
@@ -76,6 +80,9 @@ func (r *LoggerData) Duration() int64 {
 	return r.duration
 }
 
+// String implements fmt.Stringer, and is the format used by the builtin logger.
+// It reports the method, status, path and duration of the request, with the log
+// message on a second line when there is one.
 func (r *LoggerData) String() string {
 	dur := float32(r.Duration())
 	i := 0

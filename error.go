@@ -5,7 +5,12 @@ import (
 	"net/http"
 )
 
-// Error struct that can be used to return additional info on Handler error
+// HandlerError is an error carrying the http status, client response, headers
+// and log message to use when a Handler fails.
+// An error that is not a *HandlerError is reported as 500 Internal Server Error.
+// LogMessage is passed to the logger and is not sent to the client, unless
+// enabled with Config.SetForwardErrorLog or
+// Config.Envelope.SetForwardLogMessage.
 type HandlerError struct {
 	err        error
 	LogMessage string
@@ -14,7 +19,7 @@ type HandlerError struct {
 	Headers    http.Header
 }
 
-// Create new HandlerError with the specified http status code.
+// Error creates a new HandlerError with the specified http status code.
 func Error(code int) *HandlerError {
 	e := HandlerError{
 		HTTPStatus: code,
@@ -27,22 +32,23 @@ func Error(code int) *HandlerError {
 	return &e
 }
 
-// Add a log message to the HandlerError.
-// This message is not sent to the client.
+// WithMessage sets the log message of the HandlerError, formatted as by
+// fmt.Sprintf. This message is not sent to the client by default.
 func (e *HandlerError) WithMessage(message string, args ...any) *HandlerError {
 	e.LogMessage = fmt.Sprintf(message, args...)
 
 	return e
 }
 
-// Add response to the HandlerError to be send to the client.
+// WithResponse sets the response body sent to the client, formatted as by
+// fmt.Sprintf. When it is empty, no body is written.
 func (e *HandlerError) WithResponse(response string, args ...any) *HandlerError {
 	e.Response = fmt.Sprintf(response, args...)
 
 	return e
 }
 
-// Set a response header, replacing any existing values for the header.
+// WithHeader sets a response header, replacing any existing values for it.
 func (e *HandlerError) WithHeader(header string, value string) *HandlerError {
 	if e.Headers == nil {
 		e.Headers = http.Header{}
@@ -53,7 +59,7 @@ func (e *HandlerError) WithHeader(header string, value string) *HandlerError {
 	return e
 }
 
-// Append a value to a response header, keeping any existing values.
+// AddHeader appends a value to a response header, keeping any existing values.
 func (e *HandlerError) AddHeader(header string, value string) *HandlerError {
 	if e.Headers == nil {
 		e.Headers = http.Header{}
@@ -64,13 +70,16 @@ func (e *HandlerError) AddHeader(header string, value string) *HandlerError {
 	return e
 }
 
-// Delete all values of a response header.
+// DeleteHeader deletes all values of a response header.
 func (e *HandlerError) DeleteHeader(header string) *HandlerError {
 	e.Headers.Del(header)
 
 	return e
 }
 
+// Error implements the error interface.
+// It returns the log message and the wrapped error joined by ": ", or whichever
+// of the two is set.
 func (e *HandlerError) Error() string {
 	if e.err != nil {
 		if e.LogMessage != "" {
@@ -83,17 +92,24 @@ func (e *HandlerError) Error() string {
 	return e.LogMessage
 }
 
+// Wrap sets the error wrapped by the HandlerError, replacing any error it
+// already wraps.
 func (e *HandlerError) Wrap(err error) *HandlerError {
 	e.err = err
 
 	return e
 }
 
+// Unwrap returns the wrapped error, so a HandlerError can be inspected with
+// errors.Is and errors.As.
 func (e *HandlerError) Unwrap() error {
 	return e.err
 }
 
-// Create Envelope from error.
+// ToEnvelope creates an Envelope from the error.
+// The status error field is set from the client response, falling back to the
+// status text of the http status code. The log message is included only if
+// Config.Envelope.SetForwardLogMessage is enabled.
 func (e *HandlerError) ToEnvelope() *Envelope {
 	env := Envelope{
 		Data: nil,
@@ -128,6 +144,8 @@ type PanicError struct {
 	stack []byte
 }
 
+// Error implements the error interface, reporting the panic value and the
+// stack trace.
 func (p *PanicError) Error() string {
 	return fmt.Sprintf("panic: %v\n%s", p.value, p.stack)
 }

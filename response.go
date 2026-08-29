@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Create new HandlerResponse with data.
+// Response creates a new HandlerResponse carrying data, with status 200 OK.
 func Response(data any) *HandlerResponse {
 	res := HandlerResponse{
 		Data:       data,
@@ -17,6 +17,11 @@ func Response(data any) *HandlerResponse {
 	return &res
 }
 
+// HandlerResponse is the successful result of a Handler.
+// Data is written to the client as-is if it is a string or a []byte, and JSON
+// marshalled otherwise. A nil Data writes no body.
+// LogMessage is passed to the logger and is not sent to the client, unless
+// envelope responses are enabled with Config.Envelope.SetForwardLogMessage.
 type HandlerResponse struct {
 	Data       any
 	HTTPStatus int
@@ -24,21 +29,22 @@ type HandlerResponse struct {
 	Headers    http.Header
 }
 
-// Set HTTP status code
+// WithHTTPStatus sets the http status code of the response.
 func (r *HandlerResponse) WithHTTPStatus(code int) *HandlerResponse {
 	r.HTTPStatus = code
 
 	return r
 }
 
-// Set log message
+// WithMessage sets the log message of the response, formatted as by
+// fmt.Sprintf. This message is not sent to the client by default.
 func (r *HandlerResponse) WithMessage(message string, args ...any) *HandlerResponse {
 	r.LogMessage = fmt.Sprintf(message, args...)
 
 	return r
 }
 
-// Set a response header, replacing any existing values for the header.
+// WithHeader sets a response header, replacing any existing values for it.
 func (r *HandlerResponse) WithHeader(header string, value string) *HandlerResponse {
 	if r.Headers == nil {
 		r.Headers = http.Header{}
@@ -49,7 +55,7 @@ func (r *HandlerResponse) WithHeader(header string, value string) *HandlerRespon
 	return r
 }
 
-// Append a value to a response header, keeping any existing values.
+// AddHeader appends a value to a response header, keeping any existing values.
 func (r *HandlerResponse) AddHeader(header string, value string) *HandlerResponse {
 	if r.Headers == nil {
 		r.Headers = http.Header{}
@@ -60,7 +66,8 @@ func (r *HandlerResponse) AddHeader(header string, value string) *HandlerRespons
 	return r
 }
 
-// Append a Set-Cookie header to the response.
+// SetCookie appends a Set-Cookie header to the response.
+// A nil or invalid cookie is ignored.
 func (r *HandlerResponse) SetCookie(cookie *http.Cookie) *HandlerResponse {
 	if cookie == nil {
 		return r
@@ -73,14 +80,16 @@ func (r *HandlerResponse) SetCookie(cookie *http.Cookie) *HandlerResponse {
 	return r
 }
 
-// Delete all values of a response header.
+// DeleteHeader deletes all values of a response header.
 func (r *HandlerResponse) DeleteHeader(header string) *HandlerResponse {
 	r.Headers.Del(header)
 
 	return r
 }
 
-// Create Envelope from response.
+// ToEnvelope creates an Envelope from the response.
+// The log message is included only if
+// Config.Envelope.SetForwardLogMessage is enabled.
 func (r *HandlerResponse) ToEnvelope() *Envelope {
 	e := Envelope{
 		Data: r.Data,
@@ -98,14 +107,17 @@ func (r *HandlerResponse) ToEnvelope() *Envelope {
 	return &e
 }
 
-// Status struct for Envelope
+// EnvelopeStatus is the status field of an Envelope.
+// Message and Error are omitted from the JSON output when unset.
 type EnvelopeStatus struct {
 	HTTPStatus int     `json:"http_status"`
 	Message    *string `json:"message,omitempty"`
 	Error      *string `json:"error,omitempty"`
 }
 
-// Client response struct when config.EnvelopeResponse is set
+// Envelope is the fixed structure sent to the client when envelope responses
+// are enabled with Config.Envelope.Enable.
+// Data is omitted from the JSON output when the handler returns no data.
 type Envelope struct {
 	Data   any            `json:"data,omitempty"`
 	Status EnvelopeStatus `json:"status"`

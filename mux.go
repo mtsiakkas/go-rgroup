@@ -5,8 +5,16 @@ import (
 	"sync/atomic"
 )
 
-// HandlerMux is similar to http.ServeMux
-// All setup (handlers, middleware) should be completed before attempting to serve
+// HandlerMux wraps an http.ServeMux and propagates its Middleware to every
+// handler registered on it. A nested HandlerGroup or HandlerMux inherits the
+// parent's middleware; a plain http.Handler is adapted so the middleware
+// applies to it as well.
+//
+// Routing follows http.ServeMux pattern matching. A HandlerMux implements
+// http.Handler, so it can be nested in another HandlerMux or registered on any
+// net/http router. All setup (handlers, middleware, prefix) must be completed
+// before the mux serves its first request; the mux is frozen by the first call
+// to ServeHTTP, and mutating it afterwards panics.
 type HandlerMux struct {
 	h          http.Handler
 	m          *http.ServeMux
@@ -23,7 +31,8 @@ func (m *HandlerMux) checkFrozen() {
 	}
 }
 
-// Create a new empty HandlerMux
+// NewServeMux creates a new empty HandlerMux.
+// It panics if the global config has not been locked with Config.Lock.
 func NewServeMux() *HandlerMux {
 	m := new(HandlerMux)
 	m.init()
@@ -46,6 +55,10 @@ func (m *HandlerMux) init() {
 	}
 }
 
+// SetPrefix sets a path prefix that is stripped from the request before it is
+// matched against the registered patterns, so a nested HandlerMux does not have
+// to repeat the path it is mounted under in its own routes.
+// It returns the mux, so calls can be chained.
 func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
 	m.init()
 	m.prefix = prefix
@@ -53,7 +66,10 @@ func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
 	return m
 }
 
-// Add handlers to HandlerMux
+// Handle registers handler for the given path pattern.
+// It returns the mux, so calls can be chained.
+// It panics if handler is nil, path is empty, or the path is already
+// registered.
 func (m *HandlerMux) Handle(path string, handler http.Handler) *HandlerMux {
 	if handler == nil {
 		panic("[rgroup.HandlerMux] nil Handler")
@@ -79,7 +95,12 @@ func (m *HandlerMux) setInheritedMiddleware(middleware []Middleware) {
 	m.build()
 }
 
-// Add middleware to all handlers in mux
+// AddMiddleware appends the given Middleware to the HandlerMux, applying it to
+// every handler registered on it, including those added later.
+// The first Middleware added is the innermost, closest to the handler; any
+// middleware inherited from a parent HandlerMux wraps all of it.
+// It returns the mux, so calls can be chained, and panics if any Middleware is
+// nil.
 func (m *HandlerMux) AddMiddleware(middleware ...Middleware) *HandlerMux {
 	m.init()
 	for _, ms := range middleware {
@@ -113,6 +134,8 @@ func (m *HandlerMux) build() {
 	m.h = http.StripPrefix(m.prefix, m.m)
 }
 
+// ServeHTTP implements http.Handler.
+// The first call freezes the mux; mutating it afterwards panics.
 func (m *HandlerMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ensureLocked()
 	m.frozen.CompareAndSwap(false, true)

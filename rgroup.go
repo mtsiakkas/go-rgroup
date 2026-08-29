@@ -1,4 +1,13 @@
-// A zero-dependency handler groupping framework for net/http.
+// Package rgroup is a zero-dependency handler grouping framework for net/http.
+//
+// Handlers return a (*HandlerResponse, error) tuple instead of writing to the
+// http.ResponseWriter themselves. They are collected into a HandlerGroup, which
+// dispatches on the request method and implements http.Handler, and groups can
+// be composed with HandlerMux.
+//
+// Package wide behaviour (logging, envelope responses, panic recovery) is set
+// through Config, and must be locked with Config.Lock before any HandlerGroup
+// or HandlerMux is created.
 package rgroup
 
 import (
