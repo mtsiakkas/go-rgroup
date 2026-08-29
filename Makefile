@@ -1,10 +1,9 @@
 .PHONY: test
 test:
-ifeq (, $(shell which tparse 2>/dev/null))
-	@go test -cover -coverprofile=c.out
-else
-	@go test -json -cover -coverprofile=c.out | tparse -pass
-endif
+	go test -cover -coverprofile=c.out -v
+
+build:
+	GOTOOLCHAIN=$(shell grep -e "^go\s" go.mod | sed "s/\s//") go build
 
 .PHONY: test.report
 test.report: test
@@ -19,7 +18,7 @@ else
 endif
 
 .PHONY: ci
-ci: test lint
+ci: build test lint
 
 .PHONY: tag
 TARGET?=patch
