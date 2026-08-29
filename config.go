@@ -50,7 +50,7 @@ func resetConfig() {
 }
 
 var defaultConfig = globalConfig{
-	logOptions:      true,
+	logOptions:      false,
 	envelope:        envelopeOptions{},
 	logger:          defaultLogger,
 	prewriter:       nil,
