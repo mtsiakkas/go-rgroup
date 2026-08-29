@@ -102,10 +102,12 @@ func NewWithHandlers(handlers HandlerMap) *HandlerGroup {
 
 // Set a local logger function to the HandlerGroup.
 // This will replace the global logger for the specified route.
-func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
+func (h *HandlerGroup) SetLogger(p func(*LoggerData)) *HandlerGroup {
 	h.init()
 	h.logger = p
 	h.build()
+
+	return h
 }
 
 // Set Handler for method.
