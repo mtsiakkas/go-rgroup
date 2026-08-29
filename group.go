@@ -92,35 +92,48 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 }
 
 // Adds a new Handler to the HandlerGroup.
-func (h *HandlerGroup) AddHandler(method string, handler Handler) {
+func (h *HandlerGroup) AddHandler(method string, handler Handler) *HandlerGroup {
+	if handler == nil {
+		panic("[rgroup] attempt to add nil Handler to HandlerGroup")
+	}
+	if method == "" {
+		panic("[rgroup] attempt to and Handler without method")
+	}
 	h.initMaps()
 	h.raw[strings.ToUpper(method)] = handler
 	h.build()
+
+	return h
 }
 
 // Utility function to add POST Handler to HandlerGroup
-func (h *HandlerGroup) Post(handler Handler) {
+func (h *HandlerGroup) Post(handler Handler) *HandlerGroup {
 	h.AddHandler(http.MethodPost, handler)
+	return h
 }
 
 // Utility function to add PUT Handler to HandlerGroup
-func (h *HandlerGroup) Put(handler Handler) {
+func (h *HandlerGroup) Put(handler Handler) *HandlerGroup {
 	h.AddHandler(http.MethodPut, handler)
+	return h
 }
 
 // Utility function to add PATCH Handler to HandlerGroup
-func (h *HandlerGroup) Patch(handler Handler) {
+func (h *HandlerGroup) Patch(handler Handler) *HandlerGroup {
 	h.AddHandler(http.MethodPatch, handler)
+	return h
 }
 
 // Utility function to add DELETE Handler to HandlerGroup
-func (h *HandlerGroup) Delete(handler Handler) {
+func (h *HandlerGroup) Delete(handler Handler) *HandlerGroup {
 	h.AddHandler(http.MethodDelete, handler)
+	return h
 }
 
 // Utility function to add GET Handler to HandlerGroup
-func (h *HandlerGroup) Get(handler Handler) {
+func (h *HandlerGroup) Get(handler Handler) *HandlerGroup {
 	h.AddHandler(http.MethodGet, handler)
+	return h
 }
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
