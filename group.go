@@ -139,8 +139,14 @@ func (h *HandlerGroup) setInheritedMiddleware(middleware []Middleware) {
 }
 
 // AddMiddleware appends the given Middleware to the HandlerGroup
-func (h *HandlerGroup) AddMiddleware(m ...Middleware) *HandlerGroup {
-	h.middleware = append(h.middleware, m...)
+func (h *HandlerGroup) AddMiddleware(middleware ...Middleware) *HandlerGroup {
+	h.init()
+	for _, m := range middleware {
+		if m == nil {
+			panic("[rgroup.HandlerGroup] nil middleware")
+		}
+	}
+	h.middleware = append(h.middleware, middleware...)
 	h.build()
 	return h
 }

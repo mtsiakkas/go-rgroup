@@ -80,9 +80,14 @@ func (m *HandlerMux) setInheritedMiddleware(middleware []Middleware) {
 }
 
 // Add middleware to all handlers in mux
-func (m *HandlerMux) AddMiddleware(mid ...Middleware) *HandlerMux {
+func (m *HandlerMux) AddMiddleware(middleware ...Middleware) *HandlerMux {
 	m.init()
-	m.middleware = append(m.middleware, mid...)
+	for _, ms := range middleware {
+		if ms == nil {
+			panic("[rgroup.HandlerMux] nil middleware")
+		}
+	}
+	m.middleware = append(m.middleware, middleware...)
 	m.build()
 	return m
 }
