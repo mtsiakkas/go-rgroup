@@ -19,7 +19,7 @@ type HandlerMux struct {
 
 func (m *HandlerMux) checkFrozen() {
 	if m.frozen.Load() {
-		panic("[rgroup] HandlerMux build after serve")
+		panic("[rgroup.HandlerMux] build after serve")
 	}
 }
 
@@ -56,10 +56,10 @@ func (m *HandlerMux) SetPrefix(prefix string) *HandlerMux {
 // Add handlers to HandlerMux
 func (m *HandlerMux) Handle(path string, handler http.Handler) *HandlerMux {
 	if handler == nil {
-		panic("[rgroup] attempt to add nil Handler to HandlerMux")
+		panic("[rgroup.HandlerMux] nil Handler")
 	}
 	if path == "" {
-		panic("[rgroup] attempt to add Handler without path")
+		panic("[rgroup.HandlerMux] Handler without path")
 	}
 	m.init()
 	if _, ok := m.handlers[path]; ok {

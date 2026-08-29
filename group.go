@@ -50,7 +50,7 @@ func (h *HandlerGroup) methodsAllowed() {
 
 func (h *HandlerGroup) checkFrozen() {
 	if h.frozen.Load() {
-		panic("[rgroup] HandlerGroup build after serve")
+		panic("[rgroup.HandlerGroup] build after serve")
 	}
 }
 
@@ -113,10 +113,11 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 // Panics if method is already set
 func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
 	if handler == nil {
-		panic("[rgroup] attempt to add nil Handler to HandlerGroup")
+		panic("[rgroup.HandlerGroup] nil Handler")
 	}
 	if method == "" {
-		panic("[rgroup] attempt to and Handler without method")
+		panic("[rgroup.HandlerGroup] Handler without method")
+	}
 	h.init()
 	if _, ok := h.raw[strings.ToUpper(method)]; ok {
 		panic("[rgroup.HandlerGroup] duplicate Handler")
