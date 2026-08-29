@@ -127,7 +127,7 @@ func (e *HandlerError) ToEnvelope() *Envelope {
 		if statusText != "" {
 			env.Status.Error = &statusText
 		} else {
-			env.Status.Error = toPtr("unkown error")
+			env.Status.Error = toPtr("unknown error")
 		}
 	}
 
