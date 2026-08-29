@@ -108,8 +108,10 @@ func (h *HandlerGroup) SetLogger(p func(*LoggerData)) {
 	h.build()
 }
 
-// Adds a new Handler to the HandlerGroup.
-func (h *HandlerGroup) AddHandler(method string, handler Handler) *HandlerGroup {
+// Set Handler for method.
+// The method is normalized to upper case.
+// Panics if method is already set
+func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
 	if handler == nil {
 		panic("[rgroup] attempt to add nil Handler to HandlerGroup")
 	}
@@ -120,36 +122,6 @@ func (h *HandlerGroup) AddHandler(method string, handler Handler) *HandlerGroup 
 	h.raw[strings.ToUpper(method)] = handler
 	h.build()
 
-	return h
-}
-
-// Utility function to add POST Handler to HandlerGroup
-func (h *HandlerGroup) Post(handler Handler) *HandlerGroup {
-	h.AddHandler(http.MethodPost, handler)
-	return h
-}
-
-// Utility function to add PUT Handler to HandlerGroup
-func (h *HandlerGroup) Put(handler Handler) *HandlerGroup {
-	h.AddHandler(http.MethodPut, handler)
-	return h
-}
-
-// Utility function to add PATCH Handler to HandlerGroup
-func (h *HandlerGroup) Patch(handler Handler) *HandlerGroup {
-	h.AddHandler(http.MethodPatch, handler)
-	return h
-}
-
-// Utility function to add DELETE Handler to HandlerGroup
-func (h *HandlerGroup) Delete(handler Handler) *HandlerGroup {
-	h.AddHandler(http.MethodDelete, handler)
-	return h
-}
-
-// Utility function to add GET Handler to HandlerGroup
-func (h *HandlerGroup) Get(handler Handler) *HandlerGroup {
-	h.AddHandler(http.MethodGet, handler)
 	return h
 }
 
