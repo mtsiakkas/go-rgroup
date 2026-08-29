@@ -87,11 +87,8 @@ func (m *HandlerMux) Handle(path string, handler http.Handler) *HandlerMux {
 }
 
 func (m *HandlerMux) setInheritedMiddleware(middleware []Middleware) {
-	ms := make([]Middleware, len(middleware))
-	for i, mm := range middleware {
-		ms[i] = mm
-	}
-	m.inherited = ms
+	m.inherited = make([]Middleware, len(middleware))
+	copy(m.inherited, middleware)
 	m.build()
 }
 

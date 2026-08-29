@@ -143,11 +143,8 @@ func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
 }
 
 func (h *HandlerGroup) setInheritedMiddleware(middleware []Middleware) {
-	ms := make([]Middleware, len(middleware))
-	for i, mm := range middleware {
-		ms[i] = mm
-	}
-	h.inherited = ms
+	h.inherited = make([]Middleware, len(middleware))
+	copy(h.inherited, middleware)
 	h.build()
 }
 
