@@ -118,6 +118,8 @@ func (h *HandlerGroup) Handle(method string, handler Handler) *HandlerGroup {
 	if method == "" {
 		panic("[rgroup] attempt to and Handler without method")
 	h.init()
+	if _, ok := h.raw[strings.ToUpper(method)]; ok {
+		panic("[rgroup.HandlerGroup] duplicate Handler")
 	}
 	h.raw[strings.ToUpper(method)] = handler
 	h.build()

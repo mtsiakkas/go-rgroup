@@ -62,6 +62,9 @@ func (m *HandlerMux) Handle(path string, handler http.Handler) *HandlerMux {
 		panic("[rgroup] attempt to add Handler without path")
 	}
 	m.init()
+	if _, ok := m.handlers[path]; ok {
+		panic("[rgroup.HandlerMux] duplicate Handler")
+	}
 	m.handlers[path] = handler
 	m.build()
 	return m
